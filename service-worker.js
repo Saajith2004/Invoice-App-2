@@ -1,11 +1,11 @@
 const CACHE_NAME = "invoice-cache-v3";
 
 const ASSETS = [
-  "/Invoice-App-2/invoice_app.html",
-  "/Invoice-App-2/manifest.json",
-  "/Invoice-App-2/service-worker.js",
-  "/Invoice-App-2/invoice-icon-192.png",
-  "/Invoice-App-2/invoice-icon-512.png"
+  "index.html",
+  "manifest.json",
+  "service-worker.js",
+  "icon-192.png",
+  "icon-512.png"
 ];
 
 self.addEventListener("install", event => {

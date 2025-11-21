@@ -1,7 +1,7 @@
 {
   "name": "Invoice Builder",
   "short_name": "Invoice",
-  "start_url": "/Invoice-App-2/invoice_app.html",
+  "start_url": "index.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#ffffff",
