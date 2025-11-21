@@ -5,7 +5,6 @@
   <meta name="theme-color" content="#ffffff">
   <meta charset="UTF-8">
   <title>Pro-Forma Invoice Builder</title>
-  
 
   <style>
     /* ========== PAGE & GLOBAL ========== */
@@ -23,10 +22,10 @@
       margin: 20px;
       display: flex;
       gap: 24px;
-      background: #f4f5f7;
+      background: linear-gradient(135deg, #f4f5f7, #e9eef5);
     }
 
-    input, textarea {
+    input, textarea, select {
       width: 100%;
       padding: 6px 8px;
       margin-bottom: 6px;
@@ -49,9 +48,11 @@
       background: #ffffff;
       border-radius: 8px;
       border: 1px solid #d0d3da;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.06);
       padding: 12px 14px;
       display: flex;
       flex-direction: column;
+      height: fit-content;
     }
 
     .form-container h2 {
@@ -81,7 +82,7 @@
     }
 
     .line-item-row textarea.desc {
-      height: 56px;              /* bigger description input */
+      height: 56px;
       resize: vertical;
     }
 
@@ -110,13 +111,8 @@
       margin-top: 4px;
     }
 
-    .add-btn span {
-      font-size: 15px;
-    }
-
-    .add-btn:hover {
-      background: #157347;
-    }
+    .add-btn span { font-size: 15px; }
+    .add-btn:hover { background: #157347; }
 
     .remove-btn {
       background: #dc3545;
@@ -128,9 +124,7 @@
       margin-top: 22px;
     }
 
-    .remove-btn:hover {
-      background: #bb2d3b;
-    }
+    .remove-btn:hover { background: #bb2d3b; }
 
     /* ========== PREVIEW / A4 INVOICE CONTAINER ========== */
     .preview-wrapper {
@@ -145,25 +139,26 @@
       min-height: 287mm;
       background: #ffffff;
       border: 1px solid #ccc;
-      box-shadow: 0 0 8px rgba(0,0,0,0.15);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+      border-radius: 8px;
       padding: 14mm;
       display: flex;
       flex-direction: column;
     }
 
-    /* ========== HEADER (LOGO + CUSTOMER + TITLE) ========== */
-    .invoice-header {
-      text-align: center;
-    }
+    .invoice-header { text-align: center; }
 
     .invoice-logo {
-      max-width: 200px;      /* reduces PNG size visually */
+      max-width: 200px;
       max-height: 100px;
     }
+
     .company_name {
-      font-size: 16px;
-      font-weight: bold;
+      font-size: 17px;
+      font-weight: 700;
       margin-top: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
     }
 
     .customer-block {
@@ -183,20 +178,15 @@
       text-align: left;
     }
 
-    /* ========== BODY (TABLES, TOTALS, DISCLAIMER) ========== */
     .invoice-main {
       flex: 1;
       margin-top: 6mm;
       font-size: 11px;
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
+    table { width: 100%; border-collapse: collapse; }
 
-    .meta-table th,
-    .meta-table td {
+    .meta-table th, .meta-table td {
       border: 1px solid #000;
       padding: 4px 6px;
       font-size: 10.5px;
@@ -208,12 +198,9 @@
       font-weight: 700;
     }
 
-    .items-table {
-      margin-top: 8mm;
-    }
+    .items-table { margin-top: 8mm; }
 
-    .items-table th,
-    .items-table td {
+    .items-table th, .items-table td {
       border: 1px solid #000;
       padding: 5px 6px;
       font-size: 11px;
@@ -224,31 +211,18 @@
       font-weight: 700;
     }
 
-    .items-table th.desc-col,
-    .items-table td.desc-col {
-      width: 75%;
-    }
+    .items-table th.desc-col { width: 75%; }
+    .items-table th.amount-col { width: 25%; text-align: right; white-space: nowrap; }
 
-    .items-table th.amount-col,
-    .items-table td.amount-col {
-      width: 25%;
-      text-align: right;
-      white-space: nowrap;
-    }
-
-    /* totals box */
     .totals-box {
       width: 40%;
       margin-left: auto;
       margin-top: 10mm;
     }
 
-    .totals-box table {
-      border-collapse: collapse;
-    }
+    .totals-box table { border-collapse: collapse; }
 
-    .totals-box th,
-    .totals-box td {
+    .totals-box th, .totals-box td {
       border: 1px solid #000;
       padding: 4px 6px;
       font-size: 11px;
@@ -256,27 +230,22 @@
 
     .totals-box th {
       background: #f2f2f2;
-      text-align: left;
-      width: 45%;
+      text-transform: uppercase;
     }
 
-    .totals-box td {
-      text-align: right;
-      white-space: nowrap;
+    .totals-box tr:last-child th,
+    .totals-box tr:last-child td {
+      font-weight: 700;
     }
 
-    /* disclaimer */
     .disclaimer {
-      margin-top: 12mm;
+      margin-top: 10mm;
       font-size: 11px;
       line-height: 1.4;
     }
 
-    .disclaimer p {
-      margin: 0 0 2px 0;
-    }
+    .disclaimer p { margin: 0 0 2px 0; }
 
-    /* ========== FOOTER ========== */
     .invoice-footer {
       margin-top: auto;
       padding-top: 3mm;
@@ -295,7 +264,8 @@
       }
 
       .form-container,
-      .actions {
+      .actions,
+      .history-panel {
         display: none !important;
       }
 
@@ -309,15 +279,17 @@
         flex-direction: column !important;
         overflow: hidden !important;
       }
-* {
-  page-break-inside: avoid !important;
-  page-break-before: avoid !important;
-  page-break-after: avoid !important;
-}
+
+      * {
+        page-break-inside: avoid !important;
+        page-break-before: avoid !important;
+        page-break-after: avoid !important;
+      }
     }
-    /* ========== ACTION BUTTONS UNDER PREVIEW ========== */
+
+    /* Actions */
     .actions {
-      margin-top: 10px;
+      margin-top: 14px;
       align-self: flex-start;
     }
 
@@ -328,22 +300,106 @@
       color: #fff;
       border: none;
       border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
       cursor: pointer;
       font-size: 14px;
     }
 
-    .actions button:hover {
-      background: #0b5ed7;
-    }
-    
+    .actions button:hover { background: #0b5ed7; }
 
+    /* History panel */
+    .history-panel {
+      margin-top: 16px;
+      align-self: stretch;
+      background: #ffffff;
+      border: 1px solid #d0d3da;
+      border-radius: 8px;
+      padding: 10px 12px;
+      max-height: 260px;
+      overflow-y: auto;
+      font-size: 12px;
+    }
+
+    .history-panel h3 {
+      margin: 0 0 8px 0;
+      font-size: 13px;
+    }
+
+    .history-controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .history-controls input[type="text"] {
+      flex: 1;
+      padding: 4px 6px;
+      font-size: 12px;
+    }
+
+    .history-controls button,
+    .import-label {
+      padding: 4px 10px;
+      font-size: 12px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      background: #e9ecef;
+    }
+
+    .history-controls button:hover,
+    .import-label:hover {
+      background: #dee2e6;
+    }
+
+    .import-label input[type="file"] {
+      display: none;
+    }
+
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .history-item:last-child {
+      border-bottom: none;
+    }
+
+    .history-item span {
+      margin-right: 8px;
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .history-item button {
+      padding: 2px 8px;
+      font-size: 11px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      background: #e9ecef;
+      margin-left: 4px;
+    }
+
+    .history-item button:hover {
+      background: #dee2e6;
+    }
   </style>
 </head>
 <body>
 
-  <!-- ============= LEFT INPUT PANEL ============= -->
+  <!-- LEFT INPUT PANEL -->
   <div class="form-container">
     <h2>Invoice Inputs</h2>
+
+    <label for="company_name_input">Company Name</label>
+    <input id="company_name_input" value="Airwave Freight Pvt Ltd" oninput="updateInvoice()">
 
     <label for="customer_name">Customer Name</label>
     <input id="customer_name" oninput="updateInvoice()">
@@ -358,6 +414,21 @@
     <input id="customer_country" oninput="updateInvoice()">
 
     <div class="section-title">Invoice Details</div>
+
+    <label for="currency_selector">Currency</label>
+    <select id="currency_selector" oninput="onCurrencyChange()">
+      <option value="LKR">LKR</option>
+      <option value="USD">USD</option>
+      <option value="EUR">EUR</option>
+      <option value="GBP">GBP</option>
+      <option value="AED">AED</option>
+      <option value="INR">INR</option>
+      <option value="SGD">SGD</option>
+      <option value="AUD">AUD</option>
+      <option value="CAD">CAD</option>
+      <option value="JPY">JPY</option>
+      <option value="CNY">CNY</option>
+    </select>
 
     <label for="invoice_number">Invoice Number</label>
     <input id="invoice_number" oninput="updateInvoice()">
@@ -377,6 +448,14 @@
     <label for="mawb_number">MAWB Number</label>
     <input id="mawb_number" oninput="updateInvoice()">
 
+    <div class="section-title">Charges & Tax</div>
+
+    <label for="service_percent">Service Charge %</label>
+    <input id="service_percent" type="number" step="0.01" value="0" oninput="updateInvoice()">
+
+    <label for="vat_percent">VAT %</label>
+    <input id="vat_percent" type="number" step="0.01" value="0" oninput="updateInvoice()">
+
     <div class="section-title">Line Items</div>
 
     <div id="items" class="line-items-wrapper"></div>
@@ -386,15 +465,14 @@
     </button>
   </div>
 
-  <!-- ============= RIGHT A4 PREVIEW ============= -->
+  <!-- RIGHT PREVIEW PANEL -->
   <div class="preview-wrapper">
     <div class="invoice-container" id="invoice_section">
 
       <!-- HEADER -->
       <div class="invoice-header">
-        <!-- Replace logo.png with your own logo file -->
         <img src="airwave-logo.png" alt="Company Logo" class="invoice-logo">
-        <div class="Company Name" id="company_name">
+        <div class="company_name" id="company_name">
           Airwave Freight Pvt Ltd
         </div>
         <div class="customer-block" id="preview_customer"></div>
@@ -439,6 +517,14 @@
               <td id="subtotal">LKR 0.00</td>
             </tr>
             <tr>
+              <th>SERVICE CHARGE</th>
+              <td id="service_amount">LKR 0.00</td>
+            </tr>
+            <tr>
+              <th>VAT</th>
+              <td id="vat_amount">LKR 0.00</td>
+            </tr>
+            <tr>
               <th>TOTAL</th>
               <td id="total">LKR 0.00</td>
             </tr>
@@ -459,14 +545,32 @@
       </div>
     </div>
 
-    <!-- PRINT BUTTONS -->
+    <!-- ACTIONS + HISTORY -->
     <div class="actions">
       <button type="button" onclick="window.print()">Print / Save as PDF</button>
+      <button type="button" onclick="saveInvoice()">Save Invoice</button>
+      <button type="button" onclick="startNewInvoice()">New Invoice</button>
+    </div>
+
+    <div class="history-panel" id="history_panel">
+      <h3>Saved Invoices</h3>
+      <div class="history-controls">
+        <input type="text" id="history_search" placeholder="Search by invoice or customer" oninput="renderHistory()">
+        <button type="button" onclick="exportHistory()">Export</button>
+        <label class="import-label">
+          Import
+          <input type="file" id="import_file" accept=".json" onchange="importHistory(event)">
+        </label>
+      </div>
+      <div id="history_list"></div>
     </div>
   </div>
 
   <script>
     let itemCounter = 0;
+    const HISTORY_KEY = "invoice_history";
+    let currentCurrency = "LKR";
+    let exchangeRates = { LKR: 1 };
 
     function addItem() {
       const id = ++itemCounter;
@@ -495,14 +599,46 @@
     }
 
     function getVal(id) {
-      return document.getElementById(id).value || '';
+      const el = document.getElementById(id);
+      return el ? (el.value || '') : '';
     }
 
     function formatCurrency(value) {
-      return 'LKR ' + value.toFixed(2);
+      const val = isNaN(value) ? 0 : value;
+      const rate = exchangeRates[currentCurrency] || (currentCurrency === 'LKR' ? 1 : null);
+      let displayValue = val;
+      if (rate && currentCurrency !== 'LKR') {
+        displayValue = val * rate;
+      }
+      return currentCurrency + ' ' + displayValue.toFixed(2);
+    }
+
+    function onCurrencyChange() {
+      const sel = document.getElementById('currency_selector');
+      if (!sel) return;
+      currentCurrency = sel.value || 'LKR';
+      updateInvoice();
+    }
+
+    async function fetchExchangeRates() {
+      try {
+        const res = await fetch('https://api.exchangerate.host/latest?base=LKR');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data && data.rates) {
+          exchangeRates = Object.assign({ LKR: 1 }, data.rates);
+          updateInvoice();
+        }
+      } catch (e) {
+        console.error('Failed to fetch exchange rates', e);
+      }
     }
 
     function updateInvoice() {
+      // company name
+      const companyName = getVal('company_name_input') || 'Airwave Freight Pvt Ltd';
+      document.getElementById('company_name').textContent = companyName;
+
       // customer block
       document.getElementById('preview_customer').innerHTML = `
         <strong>${getVal('customer_name')}</strong><br>
@@ -551,15 +687,255 @@
         `;
       }
 
+      const servicePercent = parseFloat(getVal('service_percent')) || 0;
+      const vatPercent = parseFloat(getVal('vat_percent')) || 0;
+
+      const serviceAmount = subtotal * (servicePercent / 100);
+      const baseForVat = subtotal + serviceAmount;
+      const vatAmount = baseForVat * (vatPercent / 100);
+      const total = subtotal + serviceAmount + vatAmount;
+
       document.getElementById('preview_items').innerHTML = rowsHtml;
       document.getElementById('subtotal').textContent = formatCurrency(subtotal);
-      document.getElementById('total').textContent    = formatCurrency(subtotal);
+      document.getElementById('service_amount').textContent = formatCurrency(serviceAmount);
+      document.getElementById('vat_amount').textContent = formatCurrency(vatAmount);
+      document.getElementById('total').textContent    = formatCurrency(total);
     }
 
-    // add one default line item on load
-    addEventListener('DOMContentLoaded', () => {
+    function loadHistoryFromStorage() {
+      const raw = localStorage.getItem(HISTORY_KEY);
+      if (!raw) return [];
+      try {
+        return JSON.parse(raw);
+      } catch (e) {
+        console.error("Failed to parse invoice history", e);
+        return [];
+      }
+    }
+
+    function saveHistoryToStorage(list) {
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(list));
+    }
+
+    function getCurrentInvoiceData() {
+      const descs = document.querySelectorAll('.line-item-row .desc');
+      const amts = document.querySelectorAll('.line-item-row .amt');
+      const items = [];
+      for (let i = 0; i < descs.length; i++) {
+        items.push({
+          description: descs[i].value,
+          amount: parseFloat(amts[i].value) || 0
+        });
+      }
+      return {
+        company_name: getVal('company_name_input'),
+        customer_name: getVal('customer_name'),
+        address1: getVal('customer_address_line1'),
+        address2: getVal('customer_address_line2'),
+        country: getVal('customer_country'),
+        invoice_number: getVal('invoice_number'),
+        invoice_date: getVal('invoice_date'),
+        due_date: getVal('due_date'),
+        invoice_reference: getVal('invoice_reference'),
+        flight_date: getVal('flight_date'),
+        mawb_number: getVal('mawb_number'),
+        items,
+        service_percent: parseFloat(getVal('service_percent')) || 0,
+        vat_percent: parseFloat(getVal('vat_percent')) || 0,
+        currency: currentCurrency,
+        subtotal: document.getElementById('subtotal').textContent,
+        total: document.getElementById('total').textContent,
+        saved_at: new Date().toISOString()
+      };
+    }
+
+    function renderHistory() {
+      const list = loadHistoryFromStorage();
+      const container = document.getElementById('history_list');
+      if (!container) return;
+      if (!list || list.length === 0) {
+        container.innerHTML = '<div style="font-size:12px;color:#666;">No saved invoices yet.</div>';
+        return;
+      }
+      const searchInput = document.getElementById('history_search');
+      const term = (searchInput ? searchInput.value : '').toLowerCase();
+      const filtered = list.filter(inv => {
+        const invNum = (inv.invoice_number || '').toLowerCase();
+        const cust = (inv.customer_name || '').toLowerCase();
+        return !term || invNum.includes(term) || cust.includes(term);
+      });
+      if (filtered.length === 0) {
+        container.innerHTML = '<div style="font-size:12px;color:#666;">No matching invoices.</div>';
+        return;
+      }
+      const rows = filtered.map(inv => {
+        const label = `${inv.invoice_number || 'No Number'} — ${inv.customer_name || 'No Customer'} — ${inv.total || ''}`;
+        const originalIndex = list.indexOf(inv);
+        return `
+          <div class="history-item">
+            <span>${label}</span>
+            <button type="button" onclick="loadInvoice(${originalIndex})">Load</button>
+            <button type="button" onclick="deleteInvoice(${originalIndex})">Delete</button>
+          </div>
+        `;
+      }).join('');
+      container.innerHTML = rows;
+    }
+
+    function saveInvoice() {
+      const inv = getCurrentInvoiceData();
+      const list = loadHistoryFromStorage();
+      list.push(inv);
+      saveHistoryToStorage(list);
+      renderHistory();
+      alert('Invoice saved.');
+    }
+
+    function clearLineItems() {
+      const container = document.getElementById('items');
+      container.innerHTML = '';
+      itemCounter = 0;
+    }
+
+    function loadInvoice(index) {
+      const list = loadHistoryFromStorage();
+      const inv = list[index];
+      if (!inv) return;
+
+      document.getElementById('company_name_input').value = inv.company_name || '';
+      document.getElementById('customer_name').value = inv.customer_name || '';
+      document.getElementById('customer_address_line1').value = inv.address1 || '';
+      document.getElementById('customer_address_line2').value = inv.address2 || '';
+      document.getElementById('customer_country').value = inv.country || '';
+      document.getElementById('invoice_number').value = inv.invoice_number || '';
+      document.getElementById('invoice_date').value = inv.invoice_date || '';
+      document.getElementById('due_date').value = inv.due_date || '';
+      document.getElementById('invoice_reference').value = inv.invoice_reference || '';
+      document.getElementById('flight_date').value = inv.flight_date || '';
+      document.getElementById('mawb_number').value = inv.mawb_number || '';
+
+      document.getElementById('service_percent').value = inv.service_percent || 0;
+      document.getElementById('vat_percent').value = inv.vat_percent || 0;
+
+      if (inv.currency) {
+        currentCurrency = inv.currency;
+        const sel = document.getElementById('currency_selector');
+        if (sel) sel.value = inv.currency;
+      }
+
+      clearLineItems();
+      if (inv.items && inv.items.length) {
+        inv.items.forEach(it => {
+          const id = ++itemCounter;
+          const container = document.getElementById('items');
+          const row = document.createElement('div');
+          row.className = 'line-item-row';
+          row.id = 'item_' + id;
+          row.innerHTML = `
+            <textarea class="desc" placeholder="Description" oninput="updateInvoice()">${it.description || ''}</textarea>
+            <input class="amt" type="number" step="0.01" placeholder="Amount" value="${it.amount || 0}" oninput="updateInvoice()">
+            <button type="button" class="remove-btn" onclick="removeItem(${id})">✖</button>
+          `;
+          container.appendChild(row);
+        });
+      } else {
+        addItem();
+      }
+      updateInvoice();
+    }
+
+    function startNewInvoice() {
+      document.getElementById('customer_name').value = '';
+      document.getElementById('customer_address_line1').value = '';
+      document.getElementById('customer_address_line2').value = '';
+      document.getElementById('customer_country').value = '';
+      document.getElementById('invoice_reference').value = '';
+      document.getElementById('flight_date').value = '';
+      document.getElementById('mawb_number').value = '';
+      document.getElementById('invoice_date').value = '';
+      document.getElementById('due_date').value = '';
+      document.getElementById('service_percent').value = 0;
+      document.getElementById('vat_percent').value = 0;
+
+      const sel = document.getElementById('currency_selector');
+      if (sel) sel.value = 'LKR';
+      currentCurrency = 'LKR';
+
+      clearLineItems();
+      addItem();
+      document.getElementById('invoice_number').value = getNextInvoiceNumber();
+      updateInvoice();
+    }
+
+    function deleteInvoice(index) {
+      const list = loadHistoryFromStorage();
+      if (!list || !list.length) return;
+      list.splice(index, 1);
+      saveHistoryToStorage(list);
+      renderHistory();
+    }
+
+    function exportHistory() {
+      const list = loadHistoryFromStorage();
+      const blob = new Blob([JSON.stringify(list || [], null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'invoice_history_backup.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function importHistory(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const data = JSON.parse(e.target.result || '[]');
+          if (Array.isArray(data)) {
+            saveHistoryToStorage(data);
+            renderHistory();
+            alert('Invoice history imported.');
+          } else {
+            alert('Invalid history file format.');
+          }
+        } catch (err) {
+          console.error('Failed to import history', err);
+          alert('Failed to import history.');
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+
+    function getNextInvoiceNumber() {
+      let storedYear = localStorage.getItem("invoice_year");
+      let storedNumber = localStorage.getItem("invoice_no");
+      const currentYear = new Date().getFullYear();
+
+      if (storedYear != currentYear) {
+        storedYear = currentYear;
+        storedNumber = 1;
+      } else {
+        storedNumber = storedNumber ? parseInt(storedNumber) + 1 : 1;
+      }
+
+      localStorage.setItem("invoice_year", storedYear);
+      localStorage.setItem("invoice_no", storedNumber);
+
+      return `Airwave/${storedYear}/${String(storedNumber).padStart(5, "0")}`;
+    }
+
+    // on load
+    addEventListener("DOMContentLoaded", () => {
+      document.getElementById("invoice_number").value = getNextInvoiceNumber();
       addItem();
       updateInvoice();
+      renderHistory();
+      fetchExchangeRates();
     });
   </script>
 
@@ -568,8 +944,6 @@
       navigator.serviceWorker.register("service-worker.js");
     }
   </script>
-
-  
 
 </body>
 </html>
