@@ -4,8 +4,8 @@ const ASSETS = [
   "index.html",
   "manifest.json",
   "service-worker.js",
-  "icon-192.png",
-  "icon-512.png"
+  "icon-192x192.png",
+  "icon-512x512.png"
 ];
 
 self.addEventListener("install", event => {
