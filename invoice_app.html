@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+  <meta charset="UTF-8">
+  <title>Pro-Forma Invoice Builder</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#ffffff">
+
+  <style>
+    /* ========== PAGE & GLOBAL ========== */
+    @page {
+      size: A4;
+      margin: 0;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      display: flex;
+      gap: 24px;
+      background: #f4f5f7;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 6px 8px;
+      margin-bottom: 6px;
+      font-size: 13px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    label {
+      font-weight: 600;
+      font-size: 12px;
+      display: block;
+      margin-top: 6px;
+      margin-bottom: 2px;
+    }
+
+    /* ========== LEFT INPUT PANEL ========== */
+    .form-container {
+      width: 32%;
+      background: #ffffff;
+      border-radius: 8px;
+      border: 1px solid #d0d3da;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-container h2 {
+      font-size: 16px;
+      margin: 0 0 10px 0;
+      color: #222;
+    }
+
+    .section-title {
+      margin-top: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      border-top: 1px solid #e0e0e0;
+      padding-top: 8px;
+    }
+
+    .line-items-wrapper {
+      margin-top: 6px;
+    }
+
+    .line-item-row {
+      display: grid;
+      grid-template-columns: 1.8fr 0.8fr auto;
+      gap: 6px;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+
+    .line-item-row textarea.desc {
+      height: 56px;              /* bigger description input */
+      resize: vertical;
+    }
+
+    .line-item-row input.amt {
+      text-align: right;
+    }
+
+    .add-btn, .remove-btn {
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-size: 12px;
+      padding: 6px 10px;
+      transition: 0.2s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .add-btn {
+      background: #198754;
+      color: white;
+      font-size: 13px;
+      font-weight: 600;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .add-btn span {
+      font-size: 15px;
+    }
+
+    .add-btn:hover {
+      background: #157347;
+    }
+
+    .remove-btn {
+      background: #dc3545;
+      color: #fff;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      font-size: 14px;
+      margin-top: 22px;
+    }
+
+    .remove-btn:hover {
+      background: #bb2d3b;
+    }
+
+    /* ========== PREVIEW / A4 INVOICE CONTAINER ========== */
+    .preview-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .invoice-container {
+      width: 210mm;
+      min-height: 287mm;
+      background: #ffffff;
+      border: 1px solid #ccc;
+      box-shadow: 0 0 8px rgba(0,0,0,0.15);
+      padding: 14mm;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ========== HEADER (LOGO + CUSTOMER + TITLE) ========== */
+    .invoice-header {
+      text-align: center;
+    }
+
+    .invoice-logo {
+      max-width: 200px;      /* reduces PNG size visually */
+      max-height: 100px;
+    }
+    .company_name {
+      font-size: 16px;
+      font-weight: bold;
+      margin-top: 8px;
+    }
+
+    .customer-block {
+      text-align: left;
+      margin-top: 5mm;
+      line-height: 1.45;
+    }
+
+    .customer-block strong {
+      font-size: 12px;
+    }
+
+    .invoice-title {
+      margin-top: 5mm;
+      font-weight: 700;
+      font-size: 15px;
+      text-align: left;
+    }
+
+    /* ========== BODY (TABLES, TOTALS, DISCLAIMER) ========== */
+    .invoice-main {
+      flex: 1;
+      margin-top: 6mm;
+      font-size: 11px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .meta-table th,
+    .meta-table td {
+      border: 1px solid #000;
+      padding: 4px 6px;
+      font-size: 10.5px;
+      text-align: left;
+    }
+
+    .meta-table th {
+      background: #f2f2f2;
+      font-weight: 700;
+    }
+
+    .items-table {
+      margin-top: 8mm;
+    }
+
+    .items-table th,
+    .items-table td {
+      border: 1px solid #000;
+      padding: 5px 6px;
+      font-size: 11px;
+    }
+
+    .items-table th {
+      background: #f2f2f2;
+      font-weight: 700;
+    }
+
+    .items-table th.desc-col,
+    .items-table td.desc-col {
+      width: 75%;
+    }
+
+    .items-table th.amount-col,
+    .items-table td.amount-col {
+      width: 25%;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    /* totals box */
+    .totals-box {
+      width: 40%;
+      margin-left: auto;
+      margin-top: 10mm;
+    }
+
+    .totals-box table {
+      border-collapse: collapse;
+    }
+
+    .totals-box th,
+    .totals-box td {
+      border: 1px solid #000;
+      padding: 4px 6px;
+      font-size: 11px;
+    }
+
+    .totals-box th {
+      background: #f2f2f2;
+      text-align: left;
+      width: 45%;
+    }
+
+    .totals-box td {
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    /* disclaimer */
+    .disclaimer {
+      margin-top: 12mm;
+      font-size: 11px;
+      line-height: 1.4;
+    }
+
+    .disclaimer p {
+      margin: 0 0 2px 0;
+    }
+
+    /* ========== FOOTER ========== */
+    .invoice-footer {
+      margin-top: auto;
+      padding-top: 3mm;
+      border-top: 1px solid #000;
+      text-align: center;
+      font-size: 11px;
+    }
+
+    /* ========== PRINT MODE ========== */
+    @media print {
+      body {
+        margin: 0;
+        padding: 0;
+        display: block;
+        background: #ffffff;
+      }
+
+      .form-container,
+      .actions {
+        display: none !important;
+      }
+
+      .invoice-container {
+        width: 210mm !important;
+        max-height: 297mm !important;
+        padding: 18mm !important;
+        border: none !important;
+        box-shadow: none !important;
+        display: flex !important;
+        flex-direction: column !important;
+        overflow: hidden !important;
+      }
+* {
+  page-break-inside: avoid !important;
+  page-break-before: avoid !important;
+  page-break-after: avoid !important;
+}
+    }
+    /* ========== ACTION BUTTONS UNDER PREVIEW ========== */
+    .actions {
+      margin-top: 10px;
+      align-self: flex-start;
+    }
+
+    .actions button {
+      padding: 8px 18px;
+      margin-right: 10px;
+      background: #0d6efd;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .actions button:hover {
+      background: #0b5ed7;
+    }
+    
+
+  </style>
+</head>
+<body>
+
+  <!-- ============= LEFT INPUT PANEL ============= -->
+  <div class="form-container">
+    <h2>Invoice Inputs</h2>
+
+    <label for="customer_name">Customer Name</label>
+    <input id="customer_name" oninput="updateInvoice()">
+
+    <label for="customer_address_line1">Address Line 1</label>
+    <input id="customer_address_line1" oninput="updateInvoice()">
+
+    <label for="customer_address_line2">Address Line 2</label>
+    <input id="customer_address_line2" oninput="updateInvoice()">
+
+    <label for="customer_country">Country</label>
+    <input id="customer_country" oninput="updateInvoice()">
+
+    <div class="section-title">Invoice Details</div>
+
+    <label for="invoice_number">Invoice Number</label>
+    <input id="invoice_number" oninput="updateInvoice()">
+
+    <label for="invoice_date">Date</label>
+    <input type="date" id="invoice_date" oninput="updateInvoice()">
+
+    <label for="due_date">Due Date</label>
+    <input type="date" id="due_date" oninput="updateInvoice()">
+
+    <label for="invoice_reference">Invoice Reference</label>
+    <input id="invoice_reference" oninput="updateInvoice()">
+
+    <label for="flight_date">Flight Date</label>
+    <input type="date" id="flight_date" oninput="updateInvoice()">
+
+    <label for="mawb_number">MAWB Number</label>
+    <input id="mawb_number" oninput="updateInvoice()">
+
+    <div class="section-title">Line Items</div>
+
+    <div id="items" class="line-items-wrapper"></div>
+
+    <button class="add-btn" type="button" onclick="addItem()">
+      <span>➕</span> Add Line
+    </button>
+  </div>
+
+  <!-- ============= RIGHT A4 PREVIEW ============= -->
+  <div class="preview-wrapper">
+    <div class="invoice-container" id="invoice_section">
+
+      <!-- HEADER -->
+      <div class="invoice-header">
+        <!-- Replace logo.png with your own logo file -->
+        <img src="Airwave Logo.png" alt="Company Logo" class="invoice-logo">
+        <div class="Company Name" id="company_name">
+          Airwave Freight Pvt Ltd
+        </div>
+        <div class="customer-block" id="preview_customer"></div>
+        <div class="invoice-title" id="preview_invoice_number">
+          PRO-FORMA INVOICE
+        </div>
+      </div>
+
+      <!-- MAIN BODY -->
+      <div class="invoice-main">
+        <!-- meta info table -->
+        <table class="meta-table">
+          <tr>
+            <th>DATE</th>
+            <th>DUE DATE</th>
+            <th>INVOICE NUMBER</th>
+            <th>FLIGHT DATE</th>
+            <th>MAWB</th>
+          </tr>
+          <tr>
+            <td id="p_date"></td>
+            <td id="p_due"></td>
+            <td id="p_ref"></td>
+            <td id="p_flight"></td>
+            <td id="p_mawb"></td>
+          </tr>
+        </table>
+
+        <!-- items table -->
+        <table class="items-table" id="preview_items">
+          <tr>
+            <th class="desc-col">DESCRIPTION</th>
+            <th class="amount-col">AMOUNT</th>
+          </tr>
+        </table>
+
+        <!-- totals box -->
+        <div class="totals-box">
+          <table>
+            <tr>
+              <th>SUBTOTAL</th>
+              <td id="subtotal">LKR 0.00</td>
+            </tr>
+            <tr>
+              <th>TOTAL</th>
+              <td id="total">LKR 0.00</td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- disclaimer -->
+        <div class="disclaimer">
+          <p>Please use the following communication for your payment:</p>
+          <p>This is computer generated. no signature required.</p>
+        </div>
+      </div>
+
+      <!-- FOOTER -->
+      <div class="invoice-footer">
+        <strong>Airwave Freight Pvt Ltd</strong><br>
+        No. 339/68 Sixty feet Road, Kattuwa, Negombo — Phone: 031 212 1334 — Email: airwavefreight.lk@gmail.com
+      </div>
+    </div>
+
+    <!-- PRINT BUTTONS -->
+    <div class="actions">
+      <button type="button" onclick="window.print()">Print / Save as PDF</button>
+    </div>
+  </div>
+
+  <script>
+    let itemCounter = 0;
+
+    function addItem() {
+      const id = ++itemCounter;
+      const container = document.getElementById('items');
+
+      const row = document.createElement('div');
+      row.className = 'line-item-row';
+      row.id = 'item_' + id;
+
+      row.innerHTML = `
+        <textarea class="desc" placeholder="Description" oninput="updateInvoice()"></textarea>
+        <input class="amt" type="number" step="0.01" placeholder="Amount" oninput="updateInvoice()">
+        <button type="button" class="remove-btn" onclick="removeItem(${id})">✖</button>
+      `;
+
+      container.appendChild(row);
+      updateInvoice();
+    }
+
+    function removeItem(id) {
+      const row = document.getElementById('item_' + id);
+      if (row) {
+        row.remove();
+        updateInvoice();
+      }
+    }
+
+    function getVal(id) {
+      return document.getElementById(id).value || '';
+    }
+
+    function formatCurrency(value) {
+      return 'LKR ' + value.toFixed(2);
+    }
+
+    function updateInvoice() {
+      // customer block
+      document.getElementById('preview_customer').innerHTML = `
+        <strong>${getVal('customer_name')}</strong><br>
+        ${getVal('customer_address_line1')}<br>
+        ${getVal('customer_address_line2')}<br>
+        ${getVal('customer_country')}
+      `;
+
+      // title line
+      const invNum = getVal('invoice_number');
+      document.getElementById('preview_invoice_number').textContent =
+        invNum
+          ? 'PRO-FORMA INVOICE NUMBER - ' + invNum
+          : 'PRO-FORMA INVOICE';
+
+      // meta
+      document.getElementById('p_date').textContent   = getVal('invoice_date');
+      document.getElementById('p_due').textContent    = getVal('due_date');
+      document.getElementById('p_ref').textContent    = getVal('invoice_reference');
+      document.getElementById('p_flight').textContent = getVal('flight_date');
+      document.getElementById('p_mawb').textContent   = getVal('mawb_number');
+
+      // line items + totals
+      let rowsHtml = `
+        <tr>
+          <th class="desc-col">DESCRIPTION</th>
+          <th class="amount-col">AMOUNT</th>
+        </tr>
+      `;
+
+      let subtotal = 0;
+
+      const descs = document.querySelectorAll('.line-item-row .desc');
+      const amts  = document.querySelectorAll('.line-item-row .amt');
+
+      for (let i = 0; i < descs.length; i++) {
+        const d = descs[i].value;
+        const val = parseFloat(amts[i].value) || 0;
+        subtotal += val;
+
+        rowsHtml += `
+          <tr>
+            <td class="desc-col">${d.replace(/\n/g, '<br>')}</td>
+            <td class="amount-col">${formatCurrency(val)}</td>
+          </tr>
+        `;
+      }
+
+      document.getElementById('preview_items').innerHTML = rowsHtml;
+      document.getElementById('subtotal').textContent = formatCurrency(subtotal);
+      document.getElementById('total').textContent    = formatCurrency(subtotal);
+    }
+
+    // add one default line item on load
+    addEventListener('DOMContentLoaded', () => {
+      addItem();
+      updateInvoice();
+    });
+  </script>
+  <script>
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("service-worker.js")
+    .then(() => console.log("Service Worker Registered"));
+  }
+  </script>
+
+
+<p></p>
+
+</body>
+</html>
