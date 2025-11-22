@@ -415,9 +415,6 @@
     <label for="company_name_input">Company Name</label>
     <input id="company_name_input" value="Airwave Freight Pvt Ltd" oninput="updateInvoice()">
 
-    <label for="bank_account">Bank A/C No</label>
-    <input id="bank_account" oninput="updateInvoice()" placeholder="e.g., 123-456-7890">
-
     <label for="customer_name">Customer Name</label>
     <input id="customer_name" oninput="updateInvoice()">
 
@@ -481,6 +478,8 @@
       <option value="Card">Card</option>
       <option value="Online Transfer">Online Transfer</option>
     </select>
+    <label for="bank_account">Bank A/C No</label>
+    <input id="bank_account" oninput="updateInvoice()" placeholder="e.g., 123-456-7890">
 
     <label for="chargeable_weight">Chargeable Weight</label>
     <input id="chargeable_weight" oninput="updateInvoice()" placeholder="e.g., 125.50 KG">
@@ -583,7 +582,8 @@
         </div>
             <div style="margin-top:-23mm;font-size:11px;">
               <strong>Payment Terms:</strong> <span id="p_terms"></span><br>
-              <strong>Payment Type:</strong> <span id="p_type"></span>
+              <strong>Payment Type:</strong> <span id="p_type"></span><br>
+              <strong>Bank A/C No:</strong> <span id="p_bank_account"></span>
             </div>
 
         
