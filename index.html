@@ -427,9 +427,6 @@
     <label for="customer_country">Country</label>
     <input id="customer_country" oninput="updateInvoice()">
 
-    <label for="customer_vat">Customer VAT / TRN / TIN</label>
-    <input id="customer_vat" oninput="updateInvoice()">
-
     <label for="customer_phone">Customer Phone</label>
     <input id="customer_phone" oninput="updateInvoice()">
 
@@ -491,6 +488,9 @@
 
     <label for="bank_account">Bank A/C No</label>
     <input id="bank_account" oninput="updateInvoice()" placeholder="e.g., 123-456-7890">
+
+    <label for="customer_vat">VAT / TRN / TIN</label>
+    <input id="customer_vat" oninput="updateInvoice()">
 
     <label for="chargeable_weight">Chargeable Weight</label>
     <input id="chargeable_weight" oninput="updateInvoice()" placeholder="e.g., 125.50 KG">
@@ -595,6 +595,7 @@
               <strong>Payment Terms:</strong> <span id="p_terms"></span><br>
               <span id="p_type_row"><strong>Payment Type:</strong> <span id="p_type"></span><br></span>
               <span id="p_bank_row"><strong>Bank A/C No:</strong> <span id="p_bank_account"></span></span>
+              <span id="p_vat_row"><strong>VAT / TRN / TIN:</strong> <span id="customer_vat"></span></span>
             </div>
 
         
