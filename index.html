@@ -518,6 +518,7 @@
     <div class="tabs">
       <button type="button" class="tab-btn active" data-tab="tab_customer">Customer Details</button>
       <button type="button" class="tab-btn" data-tab="tab_invoice">Invoice Details</button>
+      <button type="button" class="tab-btn" data-tab="tab_payment">Payment & Bank</button>
       <button type="button" class="tab-btn" data-tab="tab_charges">Charges & Items</button>
     </div>
 
@@ -572,81 +573,20 @@
     <label for="due_date">Due Date</label>
     <input type="date" id="due_date" oninput="updateInvoice()">
 
-    <label for="payment_terms">Payment Terms</label>
-    <select id="payment_terms" oninput="updateInvoice()">
-      <option value="">-- Select Payment Terms --</option>
-      <option value="Due on Receipt">Due on Receipt</option>
-      <option value="7 Days">7 Days</option>
-      <option value="14 Days">14 Days</option>
-      <option value="30 Days">30 Days</option>
-      <option value="60 Days">60 Days</option>
-    </select>
-
-    <label for="payment_type">Payment Type</label>
-    <select id="payment_type" oninput="updateInvoice()">
-      <option value="">-- Select Payment Type --</option>
-      <option value="Bank Transfer">Bank Transfer</option>
-      <option value="Cheque">Cheque</option>
-      <option value="Cash">Cash</option>
-      <option value="Card">Card</option>
-      <option value="Online Transfer">Online Transfer</option>
-    </select>
-
-    <label for="bank_name" class="full">Bank Name</label>
-    <input id="bank_name" class="full" list="bank_name_list" oninput="updateInvoice()" placeholder="Start typing bank name...">
-    <datalist id="bank_name_list">
-      <option value="Alliance Finance Company PLC"></option>
-      <option value="Amana Bank PLC"></option>
-      <option value="Axis Bank"></option>
-      <option value="Bank of Ceylon"></option>
-      <option value="Cargills Bank Limited"></option>
-      <option value="Central Finance PLC"></option>
-      <option value="Citibank"></option>
-      <option value="Citizen Development Business Finance PLC"></option>
-      <option value="Commercial Bank PLC"></option>
-      <option value="Commercial Credit & Finance PLC"></option>
-      <option value="Commercial Leasing and Finance"></option>
-      <option value="Deutsche Bank"></option>
-      <option value="DFCC Bank PLC"></option>
-      <option value="Habib Bank Ltd"></option>
-      <option value="Hatton National Bank PLC"></option>
-      <option value="HDFC Bank"></option>
-      <option value="HSBC (Hongkong Shanghai Bank)"></option>
-      <option value="ICICI Bank Ltd"></option>
-      <option value="Indian Bank"></option>
-      <option value="Indian Overseas Bank"></option>
-      <option value="Lanka Orix Finance PLC"></option>
-      <option value="LB Finance PLC"></option>
-      <option value="MCB Bank Ltd"></option>
-      <option value="National Development Bank PLC"></option>
-      <option value="National Savings Bank"></option>
-      <option value="Nations Trust Bank PLC"></option>
-      <option value="Pan Asia Banking Corporation PLC"></option>
-      <option value="People's Bank"></option>
-      <option value="People’s Leasing & Finance PLC"></option>
-      <option value="Public Bank"></option>
-      <option value="Regional Development Bank"></option>
-      <option value="Sampath Bank PLC"></option>
-      <option value="Sanasa Development Bank"></option>
-      <option value="Seylan Bank PLC"></option>
-      <option value="Standard Chartered Bank"></option>
-      <option value="State Bank of India"></option>
-      <option value="Union Bank of Colombo PLC"></option>
-      <option value="Vallibel Finance PLC"></option>
-    </datalist>
-
-    <label for="bank_branch" class="full">Bank Branch</label>
-    <input id="bank_branch" class="full" list="bank_branch_list" oninput="updateInvoice()" placeholder="Start typing branch...">
-    <datalist id="bank_branch_list"></datalist>
-
-    <label for="bank_account" class="full">Bank A/C No</label>
-    <input id="bank_account" class="full" oninput="updateInvoice()" placeholder="e.g., 123-456-7890">
-
-    <label for="customer_vat">VAT / TRN / TIN</label>
-    <input id="customer_vat" oninput="updateInvoice()">
-
     <label for="chargeable_weight">Chargeable Weight</label>
-    <input id="chargeable_weight" oninput="updateInvoice()" placeholder="e.g., 125.50 KG">
+    <div style="display:grid;grid-template-columns:1fr 90px;gap:8px;" class="full">
+      <input id="chargeable_weight" oninput="updateInvoice()" placeholder="e.g., 125.50">
+      <select id="cw_unit" oninput="updateInvoice()">
+        <option value="KG" selected>KG</option>
+        <option value="LB">LB</option>
+      </select>
+    </div>
+
+    <label for="cw_rate">Price per <span id="cw_rate_unit_label">KG</span></label>
+    <input id="cw_rate" type="number" step="0.01" min="0" oninput="updateInvoice()" placeholder="e.g., 250.00">
+
+    <label for="cw_total_price">Total Chargeable Weight Price</label>
+    <input id="cw_total_price" readonly placeholder="Auto calculated">
 
     <label for="flight_no">Flight No</label>
     <input id="flight_no" oninput="updateInvoice()" placeholder="e.g., UL-XXX">
@@ -662,6 +602,86 @@
     <label for="invoice_reference" style="display:none;">Invoice Reference</label>
     <input id="invoice_reference" oninput="updateInvoice()" style="display:none;">
     </div> <!-- /tab_invoice -->
+
+    <div id="tab_payment" class="tab-content">
+      <div class="section-title">Payment & Bank Details</div>
+      <div class="invoice-grid">
+
+        <label for="payment_terms">Payment Terms</label>
+        <select id="payment_terms" oninput="updateInvoice()">
+          <option value="">-- Select Payment Terms --</option>
+          <option value="Due on Receipt">Due on Receipt</option>
+          <option value="7 Days">7 Days</option>
+          <option value="14 Days">14 Days</option>
+          <option value="30 Days">30 Days</option>
+          <option value="60 Days">60 Days</option>
+        </select>
+
+        <label for="payment_type">Payment Type</label>
+        <select id="payment_type" oninput="updateInvoice()">
+          <option value="">-- Select Payment Type --</option>
+          <option value="Bank Transfer">Bank Transfer</option>
+          <option value="Cheque">Cheque</option>
+          <option value="Cash">Cash</option>
+          <option value="Card">Card</option>
+          <option value="Online Transfer">Online Transfer</option>
+        </select>
+
+        <label for="customer_vat" class="full">VAT / TRN / TIN</label>
+        <input id="customer_vat" class="full" oninput="updateInvoice()">
+
+        <label for="bank_name" class="full">Bank Name</label>
+        <input id="bank_name" class="full" list="bank_name_list" oninput="updateInvoice()" placeholder="Start typing bank name...">
+        <datalist id="bank_name_list">
+          <option value="Alliance Finance Company PLC"></option>
+          <option value="Amana Bank PLC"></option>
+          <option value="Axis Bank"></option>
+          <option value="Bank of Ceylon"></option>
+          <option value="Cargills Bank Limited"></option>
+          <option value="Central Finance PLC"></option>
+          <option value="Citibank"></option>
+          <option value="Citizen Development Business Finance PLC"></option>
+          <option value="Commercial Bank PLC"></option>
+          <option value="Commercial Credit & Finance PLC"></option>
+          <option value="Commercial Leasing and Finance"></option>
+          <option value="Deutsche Bank"></option>
+          <option value="DFCC Bank PLC"></option>
+          <option value="Habib Bank Ltd"></option>
+          <option value="Hatton National Bank PLC"></option>
+          <option value="HDFC Bank"></option>
+          <option value="HSBC (Hongkong Shanghai Bank)"></option>
+          <option value="ICICI Bank Ltd"></option>
+          <option value="Indian Bank"></option>
+          <option value="Indian Overseas Bank"></option>
+          <option value="Lanka Orix Finance PLC"></option>
+          <option value="LB Finance PLC"></option>
+          <option value="MCB Bank Ltd"></option>
+          <option value="National Development Bank PLC"></option>
+          <option value="National Savings Bank"></option>
+          <option value="Nations Trust Bank PLC"></option>
+          <option value="Pan Asia Banking Corporation PLC"></option>
+          <option value="People's Bank"></option>
+          <option value="People’s Leasing & Finance PLC"></option>
+          <option value="Public Bank"></option>
+          <option value="Regional Development Bank"></option>
+          <option value="Sampath Bank PLC"></option>
+          <option value="Sanasa Development Bank"></option>
+          <option value="Seylan Bank PLC"></option>
+          <option value="Standard Chartered Bank"></option>
+          <option value="State Bank of India"></option>
+          <option value="Union Bank of Colombo PLC"></option>
+          <option value="Vallibel Finance PLC"></option>
+        </datalist>
+
+        <label for="bank_branch" class="full">Bank Branch</label>
+        <input id="bank_branch" class="full" list="bank_branch_list" oninput="updateInvoice()" placeholder="Start typing branch...">
+        <datalist id="bank_branch_list"></datalist>
+
+        <label for="bank_account" class="full">Bank A/C No</label>
+        <input id="bank_account" class="full" oninput="updateInvoice()" placeholder="e.g., 123-456-7890">
+
+      </div>
+    </div> <!-- /tab_payment -->
 
     <div id="tab_charges" class="tab-content">
       <div class="section-title">Charges & Tax</div>
@@ -1057,7 +1077,21 @@
 
       document.getElementById('p_date').textContent = invDateVal;
       document.getElementById('p_due').textContent  = getVal('due_date');
-      document.getElementById('p_cw').textContent     = getVal('chargeable_weight');
+      const cwValRaw = getVal('chargeable_weight');
+      const cwUnit = getVal('cw_unit') || 'KG';
+      const cwNum = parseFloat(cwValRaw) || 0;
+      document.getElementById('p_cw').textContent = cwValRaw ? `${cwNum.toFixed(2)} ${cwUnit}` : '';
+      // Update rate unit label
+      const rateUnitLabel = document.getElementById('cw_rate_unit_label');
+      if (rateUnitLabel) rateUnitLabel.textContent = cwUnit;
+
+      const cwRate = parseFloat(getVal('cw_rate')) || 0;
+      const cwTotalPrice = cwNum * cwRate;
+      const cwTotalInput = document.getElementById('cw_total_price');
+      if (cwTotalInput) {
+        cwTotalInput.value = (cwValRaw && cwRate) ? formatCurrency(cwTotalPrice) : '';
+      }
+
       document.getElementById('p_flightno').textContent = getVal('flight_no');
       document.getElementById('p_flight').textContent = getVal('flight_date');
       document.getElementById('p_mawb').textContent   = getVal('mawb_number');
@@ -1206,6 +1240,8 @@
         invoice_date: getVal('invoice_date'),
         due_date: getVal('due_date'),
         chargeable_weight: getVal('chargeable_weight'),
+        cw_unit: getVal('cw_unit') || 'KG',
+        cw_rate: parseFloat(getVal('cw_rate')) || 0,
         flight_no: getVal('flight_no'),
         payment_terms: getVal('payment_terms'),
         payment_type: getVal('payment_type'),
@@ -1308,6 +1344,8 @@
       document.getElementById('invoice_date').value = inv.invoice_date || '';
       document.getElementById('due_date').value = inv.due_date || '';
       document.getElementById('chargeable_weight').value = inv.chargeable_weight || '';
+      if (document.getElementById('cw_unit')) document.getElementById('cw_unit').value = inv.cw_unit || 'KG';
+      if (document.getElementById('cw_rate')) document.getElementById('cw_rate').value = inv.cw_rate || 0;
       document.getElementById('flight_no').value = inv.flight_no || '';
       document.getElementById('payment_terms').value = inv.payment_terms || '';
       document.getElementById('customer_vat').value = inv.customer_vat || '';
