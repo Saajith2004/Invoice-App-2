@@ -1336,15 +1336,25 @@
       container.innerHTML = rows;
     }
 
-    function saveInvoice() {
+    async function saveInvoice() {
       const inv = getCurrentInvoiceData();
       const list = loadHistoryFromStorage();
       list.push(inv);
       saveHistoryToStorage(list);
       renderHistory();
 
-      // ✅ CLOUD AUTO BACKUP
-      if (window.cloudUpsertInvoice) window.cloudUpsertInvoice(inv);
+      // ✅ CLOUD AUTO BACKUP (reliable)
+      if (window.cloudUpsertInvoice) {
+        try {
+          await window.cloudUpsertInvoice(inv);
+          console.log('Cloud backup success');
+        } catch (e) {
+          console.error('Cloud backup failed', e);
+          alert('Cloud backup failed. Check internet / Firebase rules. Your invoice is saved locally on this device.');
+        }
+      } else {
+        console.warn('cloudUpsertInvoice not ready');
+      }
 
       alert('Invoice saved.');
       // refresh to load a clean new invoice
@@ -1438,7 +1448,7 @@
     }
 
 
-    function deleteInvoice(index) {
+    async function deleteInvoice(index) {
       const list = loadHistoryFromStorage();
       if (!list || !list.length) return;
 
@@ -1448,7 +1458,13 @@
       renderHistory();
 
       // ✅ CLOUD DELETE
-      if (window.cloudDeleteInvoice) window.cloudDeleteInvoice(inv);
+      if (window.cloudDeleteInvoice) {
+        try {
+          await window.cloudDeleteInvoice(inv);
+        } catch (e) {
+          console.error('Cloud delete failed', e);
+        }
+      }
     }
 
     function exportHistory() {
@@ -1476,7 +1492,9 @@
             renderHistory();
 
             // ✅ CLOUD REPLACE / MERGE
-            if (window.cloudReplaceHistory) window.cloudReplaceHistory(data);
+            if (window.cloudReplaceHistory) {
+              window.cloudReplaceHistory(data).catch(e => console.error('Cloud replace failed', e));
+            }
 
             alert('Invoice history imported.');
           } else {
