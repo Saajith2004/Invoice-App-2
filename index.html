@@ -85,7 +85,8 @@
       padding: 14px 16px;
       display: flex;
       flex-direction: column;
-      height: fit-content;
+      max-height: calc(100vh - 24px);
+      overflow-y: auto;
       position: sticky;
       top: 12px;
     }
@@ -112,6 +113,18 @@
       padding: 6px;
       border-radius: 12px;
       border: 1px solid var(--panel-border);
+      flex-wrap: wrap;              /* allow second row if needed */
+      max-height: 84px;            /* prevents huge growth */
+      overflow-y: auto;            /* vertical scroll if wrap is long */
+      overflow-x: hidden;
+    }
+
+    .tabs::-webkit-scrollbar {
+      width: 6px;
+    }
+    .tabs::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 999px;
     }
 
     .tab-btn {
@@ -126,6 +139,8 @@
       color: var(--muted);
       transition: background .15s ease, color .15s ease, transform .12s ease;
       white-space: nowrap;
+      min-width: 120px;
+      text-align: center;
     }
 
     .tab-btn.active {
@@ -573,6 +588,16 @@
     <label for="due_date">Due Date</label>
     <input type="date" id="due_date" oninput="updateInvoice()">
 
+    <label for="payment_terms">Payment Terms</label>
+    <select id="payment_terms" oninput="updateInvoice()">
+      <option value="">-- Select Payment Terms --</option>
+      <option value="Due on Receipt">Due on Receipt</option>
+      <option value="7 Days">7 Days</option>
+      <option value="14 Days">14 Days</option>
+      <option value="30 Days">30 Days</option>
+      <option value="60 Days">60 Days</option>
+    </select>
+
     <label for="chargeable_weight">Chargeable Weight</label>
     <div style="display:grid;grid-template-columns:1fr 90px;gap:8px;" class="full">
       <input id="chargeable_weight" oninput="updateInvoice()" placeholder="e.g., 125.50">
@@ -606,16 +631,6 @@
     <div id="tab_payment" class="tab-content">
       <div class="section-title">Payment & Bank Details</div>
       <div class="invoice-grid">
-
-        <label for="payment_terms">Payment Terms</label>
-        <select id="payment_terms" oninput="updateInvoice()">
-          <option value="">-- Select Payment Terms --</option>
-          <option value="Due on Receipt">Due on Receipt</option>
-          <option value="7 Days">7 Days</option>
-          <option value="14 Days">14 Days</option>
-          <option value="30 Days">30 Days</option>
-          <option value="60 Days">60 Days</option>
-        </select>
 
         <label for="payment_type">Payment Type</label>
         <select id="payment_type" oninput="updateInvoice()">
