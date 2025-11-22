@@ -113,14 +113,14 @@
       padding: 6px;
       border-radius: 12px;
       border: 1px solid var(--panel-border);
-      flex-wrap: wrap;              /* allow second row if needed */
-      max-height: 84px;            /* prevents huge growth */
-      overflow-y: auto;            /* vertical scroll if wrap is long */
-      overflow-x: hidden;
+      flex-wrap: nowrap;          /* keep one row */
+      overflow-x: auto;          /* horizontal scroll if needed */
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
     }
 
     .tabs::-webkit-scrollbar {
-      width: 6px;
+      height: 6px;
     }
     .tabs::-webkit-scrollbar-thumb {
       background: #cbd5e1;
@@ -128,7 +128,7 @@
     }
 
     .tab-btn {
-      flex: 1;
+      flex: 0 0 auto;
       padding: 8px 10px;
       font-size: 12px;
       font-weight: 800;
@@ -816,7 +816,6 @@
 
       <!-- FOOTER -->
       <div class="invoice-footer">
-        <div id="cheque_text" class="footer-cheque"></div>
         <div class="footer-line">
           <strong id="footer_company_name">Airwave Freight Pvt Ltd</strong><br>
           No. 339/68 Sixty feet Road, Kattuwa, Negombo — Phone: 031 212 1334 — Email: airwavefreight.lk@gmail.com<br>
@@ -1043,11 +1042,6 @@
       // company name
       const companyName = getVal('company_name_input') || 'Airwave Freight Pvt Ltd';
       document.getElementById('company_name').textContent = companyName;
-
-      // cheque / disputes note (uses current company name)
-      const chequeNote = `CHEQUES SHOULD BE DRAWN IN FAVOUR OF "${companyName}" AND CROSSED "ACCOUNT PAYEE". ANY DISPUTES ON THE CONTENTS OF THE INVOICE SHOULD BE COMMUNICATED TO ${companyName} IMMEDIATELY. INTEREST AT THE RATE OF 2% PER MONTH WILL BE LEVIED IF SETTLEMENT IS NOT EFFECTED WITHIN DUE DATE OF INVOICE.`;
-      const chequeEl = document.getElementById('cheque_text');
-      if (chequeEl) chequeEl.textContent = chequeNote;
 
       // footer dynamic company + bank account
       const bankAcc = getVal('bank_account');
