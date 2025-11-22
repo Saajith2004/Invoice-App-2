@@ -701,6 +701,17 @@
     <div id="tab_charges" class="tab-content">
       <div class="section-title">Charges & Tax</div>
 
+      <label for="cw_total_price_charges">Total Chargeable Weight Price</label>
+      <input id="cw_total_price_charges" readonly placeholder="Auto calculated">
+
+      <div class="full" style="display:flex;align-items:center;gap:8px;margin-top:6px;">
+        <input type="checkbox" id="include_cw_line" oninput="updateInvoice()" style="width:auto;margin:0;">
+        <label for="include_cw_line" style="margin:0;font-weight:800;font-size:12px;color:var(--muted);">Include Chargeable Weight line in Preview</label>
+      </div>
+
+      <label for="cw_line_comment" class="full">CW Line Comment (optional)</label>
+      <input id="cw_line_comment" class="full" oninput="updateInvoice()" placeholder="e.g., Handling / Freight charge">
+
       <label for="service_percent">Service Charge %</label>
       <input id="service_percent" type="number" step="0.01" value="0" oninput="updateInvoice()">
 
@@ -1102,10 +1113,11 @@
 
       const cwRate = parseFloat(getVal('cw_rate')) || 0;
       const cwTotalPrice = cwNum * cwRate;
+      const cwTotalFormatted = (cwValRaw && cwRate) ? formatCurrency(cwTotalPrice) : '';
       const cwTotalInput = document.getElementById('cw_total_price');
-      if (cwTotalInput) {
-        cwTotalInput.value = (cwValRaw && cwRate) ? formatCurrency(cwTotalPrice) : '';
-      }
+      if (cwTotalInput) cwTotalInput.value = cwTotalFormatted;
+      const cwTotalCharges = document.getElementById('cw_total_price_charges');
+      if (cwTotalCharges) cwTotalCharges.value = cwTotalFormatted;
 
       document.getElementById('p_flightno').textContent = getVal('flight_no');
       document.getElementById('p_flight').textContent = getVal('flight_date');
@@ -1161,6 +1173,22 @@
       `;
 
       let subtotal = 0;
+
+      // Optional CW first line
+      const includeCw = document.getElementById('include_cw_line')?.checked;
+      const cwComment = getVal('cw_line_comment').trim();
+      const cwRateDisplay = cwRate ? formatCurrency(cwRate).replace(currentCurrency + ' ', '') : '';
+      if (includeCw && cwValRaw && cwRate && cwTotalPrice > 0) {
+        const commentPart = cwComment ? cwComment + ' ' : '';
+        const cwDesc = `${commentPart}${cwNum.toFixed(2)}${cwUnit} X ${currentCurrency}${cwRateDisplay}`;
+        rowsHtml += `
+          <tr>
+            <td class="desc-col">${cwDesc}</td>
+            <td class="amount-col">${formatCurrency(cwTotalPrice)}</td>
+          </tr>
+        `;
+        subtotal += cwTotalPrice;
+      }
 
       const descs = document.querySelectorAll('.line-item-row .desc');
       const amts  = document.querySelectorAll('.line-item-row .amt');
@@ -1267,6 +1295,8 @@
         flight_date: getVal('flight_date'),
         mawb_number: getVal('mawb_number'),
         items,
+        include_cw_line: document.getElementById('include_cw_line')?.checked || false,
+        cw_line_comment: getVal('cw_line_comment'),
         service_percent: parseFloat(getVal('service_percent')) || 0,
         vat_percent: parseFloat(getVal('vat_percent')) || 0,
         currency: currentCurrency,
@@ -1379,6 +1409,14 @@
         currentCurrency = inv.currency;
         const sel = document.getElementById('currency_selector');
         if (sel) sel.value = inv.currency;
+      }
+
+      // Load CW line toggle and comment
+      if (document.getElementById('include_cw_line')) {
+        document.getElementById('include_cw_line').checked = !!inv.include_cw_line;
+      }
+      if (document.getElementById('cw_line_comment')) {
+        document.getElementById('cw_line_comment').value = inv.cw_line_comment || '';
       }
 
       clearLineItems();
