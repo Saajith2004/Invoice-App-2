@@ -137,6 +137,17 @@
 
     .tab-content { display: none; }
     .tab-content.active { display: block; }
+    .invoice-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 12px;
+    }
+    .invoice-grid .full {
+      grid-column: 1 / -1;
+    }
+    @media (max-width: 700px) {
+      .invoice-grid { grid-template-columns: 1fr; }
+    }
 
     .section-title {
       margin-top: 14px;
@@ -534,9 +545,10 @@
 
     <div id="tab_invoice" class="tab-content">
       <div class="section-title">Invoice Details</div>
+      <div class="invoice-grid">
 
-    <label for="currency_selector">Currency</label>
-    <select id="currency_selector" oninput="onCurrencyChange()">
+    <label for="currency_selector" class="full">Currency</label>
+    <select id="currency_selector" class="full" oninput="onCurrencyChange()">
       <option value="LKR">LKR</option>
       <option value="USD">USD</option>
       <option value="EUR">EUR</option>
@@ -568,6 +580,10 @@
       <option value="60 Days">60 Days</option>
     </select>
     <div style="display:flex;align-items:center;gap:6px;margin-top:6px;">
+      <input type="checkbox" id="show_payment_terms" checked oninput="updateInvoice()" style="width:auto;margin:0;">
+      <label for="show_payment_terms" style="margin:0;font-weight:600;font-size:12px;">Show Payment Terms in Preview</label>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;margin-top:6px;">
       <input type="checkbox" id="show_payment_type" checked oninput="updateInvoice()" style="width:auto;margin:0;">
       <label for="show_payment_type" style="margin:0;font-weight:600;font-size:12px;">Show Payment Type in Preview</label>
     </div>
@@ -586,12 +602,12 @@
       <label for="show_bank_account" style="margin:0;font-weight:600;font-size:12px;">Show Bank A/C No in Preview</label>
     </div>
 
-    <label for="bank_account">Bank A/C No</label>
-    <input id="bank_account" oninput="updateInvoice()" placeholder="e.g., 123-456-7890">
+    <label for="bank_account" class="full">Bank A/C No</label>
+    <input id="bank_account" class="full" oninput="updateInvoice()" placeholder="e.g., 123-456-7890">
 
-    <div style="display: flex; align-items: center; gap: 6px; margin-top: 6px;">
+    <div class="full" style="display: flex; align-items: center; gap: 6px; margin-top: 6px;">
       <input type="checkbox" id="show_customer_vat" checked oninput="updateInvoice()" style="width:auto;margin:0;">
-      <label for="show_customer_vat" style="margin:0;font-weight:600;font-size:12px;">Show VAT / TRN / TIN in Preview</label>
+      <label for="show_customer_vat" class="full" style="margin:0;font-weight:600;font-size:12px;">Show VAT / TRN / TIN in Preview</label>
     </div>
 
     <label for="customer_vat">VAT / TRN / TIN</label>
@@ -608,6 +624,8 @@
 
     <label for="mawb_number">MAWB Number</label>
     <input id="mawb_number" oninput="updateInvoice()">
+
+      </div>
 
     <label for="invoice_reference" style="display:none;">Invoice Reference</label>
     <input id="invoice_reference" oninput="updateInvoice()" style="display:none;">
@@ -700,7 +718,7 @@
           </table>
         </div>
             <div style="margin-top:-23mm;font-size:11px;" id="payment_preview_block">
-              <strong>Payment Terms:</strong> <span id="p_terms"></span><br>
+              <span id="p_terms_row"><strong>Payment Terms:</strong> <span id="p_terms"></span><br></span>
               <span id="p_type_row"><strong>Payment Type:</strong> <span id="p_type"></span><br></span>
               <span id="p_bank_row"><strong>Bank A/C No:</strong> <span id="p_bank_account"></span></span>
             </div>
@@ -936,7 +954,13 @@
       document.getElementById('p_flightno').textContent = getVal('flight_no');
       document.getElementById('p_flight').textContent = getVal('flight_date');
       document.getElementById('p_mawb').textContent   = getVal('mawb_number');
-      document.getElementById('p_terms').textContent  = getVal('payment_terms');
+      const termsVal = getVal('payment_terms');
+      document.getElementById('p_terms').textContent = termsVal;
+      const showTerms = document.getElementById('show_payment_terms')?.checked;
+      const termsRow = document.getElementById('p_terms_row');
+      if (termsRow) {
+        termsRow.style.display = (showTerms && termsVal) ? 'inline' : 'none';
+      }
 
       const showType = document.getElementById('show_payment_type')?.checked;
       const showBank = document.getElementById('show_bank_account')?.checked;
@@ -1078,6 +1102,7 @@
         subtotal: document.getElementById('subtotal').textContent,
         total: document.getElementById('total').textContent,
         saved_at: new Date().toISOString(),
+        show_payment_terms: document.getElementById('show_payment_terms')?.checked,
         show_payment_type: document.getElementById('show_payment_type')?.checked,
         show_bank_account: document.getElementById('show_bank_account')?.checked,
       };
@@ -1182,6 +1207,9 @@
       }
       if (document.getElementById('show_bank_account')) {
         document.getElementById('show_bank_account').checked = inv.show_bank_account !== false;
+      }
+      if (document.getElementById('show_payment_terms')) {
+        document.getElementById('show_payment_terms').checked = inv.show_payment_terms !== false;
       }
 
       if (inv.currency) {
