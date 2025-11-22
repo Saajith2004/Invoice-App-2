@@ -911,6 +911,7 @@
     function setupTabs() {
       const btns = document.querySelectorAll('.tab-btn');
       const tabs = document.querySelectorAll('.tab-content');
+      const panel = document.querySelector('.form-container');
       btns.forEach(b => {
         b.addEventListener('click', () => {
           const id = b.getAttribute('data-tab');
@@ -919,6 +920,8 @@
           tabs.forEach(t => t.classList.remove('active'));
           const target = document.getElementById(id);
           if (target) target.classList.add('active');
+          // Always keep tabs fully visible
+          if (panel) panel.scrollTop = 0;
         });
       });
     }
