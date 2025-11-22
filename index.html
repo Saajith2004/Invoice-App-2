@@ -103,6 +103,41 @@
       font-size: 18px;
     }
 
+    .tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+      background: #f1f5f9;
+      padding: 6px;
+      border-radius: 12px;
+      border: 1px solid var(--panel-border);
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 8px 10px;
+      font-size: 12px;
+      font-weight: 800;
+      border: none;
+      border-radius: 9px;
+      cursor: pointer;
+      background: transparent;
+      color: var(--muted);
+      transition: background .15s ease, color .15s ease, transform .12s ease;
+      white-space: nowrap;
+    }
+
+    .tab-btn.active {
+      background: linear-gradient(135deg, var(--brand), var(--brand-2));
+      color: #fff;
+      box-shadow: 0 6px 14px rgba(37, 99, 235, .25);
+    }
+
+    .tab-btn:hover { transform: translateY(-1px); }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
     .section-title {
       margin-top: 14px;
       font-size: 12.5px;
@@ -468,28 +503,37 @@
   <div class="form-container">
     <h2>Invoice Inputs</h2>
 
-    <label for="company_name_input">Company Name</label>
-    <input id="company_name_input" value="Airwave Freight Pvt Ltd" oninput="updateInvoice()">
+    <div class="tabs">
+      <button type="button" class="tab-btn active" data-tab="tab_customer">Customer Details</button>
+      <button type="button" class="tab-btn" data-tab="tab_invoice">Invoice Details</button>
+      <button type="button" class="tab-btn" data-tab="tab_charges">Charges & Items</button>
+    </div>
 
-    <label for="customer_name">Customer Name</label>
-    <input id="customer_name" oninput="updateInvoice()">
+    <div id="tab_customer" class="tab-content active">
+      <label for="company_name_input">Company Name</label>
+      <input id="company_name_input" value="Airwave Freight Pvt Ltd" oninput="updateInvoice()">
 
-    <label for="customer_address_line1">Address Line 1</label>
-    <input id="customer_address_line1" oninput="updateInvoice()">
+      <label for="customer_name">Customer Name</label>
+      <input id="customer_name" oninput="updateInvoice()">
 
-    <label for="customer_address_line2">Address Line 2</label>
-    <input id="customer_address_line2" oninput="updateInvoice()">
+      <label for="customer_address_line1">Address Line 1</label>
+      <input id="customer_address_line1" oninput="updateInvoice()">
 
-    <label for="customer_country">Country</label>
-    <input id="customer_country" oninput="updateInvoice()">
+      <label for="customer_address_line2">Address Line 2</label>
+      <input id="customer_address_line2" oninput="updateInvoice()">
 
-    <label for="customer_phone">Customer Phone</label>
-    <input id="customer_phone" oninput="updateInvoice()">
+      <label for="customer_country">Country</label>
+      <input id="customer_country" oninput="updateInvoice()">
 
-    <label for="customer_email">Customer Email</label>
-    <input id="customer_email" oninput="updateInvoice()">
+      <label for="customer_phone">Customer Phone</label>
+      <input id="customer_phone" oninput="updateInvoice()">
 
-    <div class="section-title">Invoice Details</div>
+      <label for="customer_email">Customer Email</label>
+      <input id="customer_email" oninput="updateInvoice()">
+    </div> <!-- /tab_customer -->
+
+    <div id="tab_invoice" class="tab-content">
+      <div class="section-title">Invoice Details</div>
 
     <label for="currency_selector">Currency</label>
     <select id="currency_selector" oninput="onCurrencyChange()">
@@ -567,22 +611,25 @@
 
     <label for="invoice_reference" style="display:none;">Invoice Reference</label>
     <input id="invoice_reference" oninput="updateInvoice()" style="display:none;">
+    </div> <!-- /tab_invoice -->
 
-    <div class="section-title">Charges & Tax</div>
+    <div id="tab_charges" class="tab-content">
+      <div class="section-title">Charges & Tax</div>
 
-    <label for="service_percent">Service Charge %</label>
-    <input id="service_percent" type="number" step="0.01" value="0" oninput="updateInvoice()">
+      <label for="service_percent">Service Charge %</label>
+      <input id="service_percent" type="number" step="0.01" value="0" oninput="updateInvoice()">
 
-    <label for="vat_percent">VAT %</label>
-    <input id="vat_percent" type="number" step="0.01" value="0" oninput="updateInvoice()">
+      <label for="vat_percent">VAT %</label>
+      <input id="vat_percent" type="number" step="0.01" value="0" oninput="updateInvoice()">
 
-    <div class="section-title">Line Items</div>
+      <div class="section-title">Line Items</div>
 
-    <div id="items" class="line-items-wrapper"></div>
+      <div id="items" class="line-items-wrapper"></div>
 
-    <button class="add-btn" type="button" onclick="addItem()">
-      <span>➕</span> Add Line
-    </button>
+      <button class="add-btn" type="button" onclick="addItem()">
+        <span>➕</span> Add Line
+      </button>
+    </div> <!-- /tab_charges -->
   </div>
 
   <!-- RIGHT PREVIEW PANEL -->
@@ -761,6 +808,22 @@
   <script>
     let itemCounter = 0;
     const HISTORY_KEY = "invoice_history";
+
+    // Tabs (left panel)
+    function setupTabs() {
+      const btns = document.querySelectorAll('.tab-btn');
+      const tabs = document.querySelectorAll('.tab-content');
+      btns.forEach(b => {
+        b.addEventListener('click', () => {
+          const id = b.getAttribute('data-tab');
+          btns.forEach(x => x.classList.remove('active'));
+          b.classList.add('active');
+          tabs.forEach(t => t.classList.remove('active'));
+          const target = document.getElementById(id);
+          if (target) target.classList.add('active');
+        });
+      });
+    }
     let currentCurrency = "LKR";
     let exchangeRates = { LKR: 1 };
 
@@ -1222,6 +1285,7 @@
 
     // on load
     addEventListener("DOMContentLoaded", async () => {
+      setupTabs();
       document.getElementById("invoice_number").value = getNextInvoiceNumber();
       addItem();
       updateInvoice();
