@@ -630,14 +630,16 @@
     }
 
     async function cloudUpsertInvoice(inv) {
-      const id = inv.invoice_number || inv.saved_at || String(Date.now());
-      await setDoc(doc(db, COL, id), inv);
+      const rawId = inv.invoice_number || inv.saved_at || String(Date.now());
+      const safeId = String(rawId).replace(/\//g, "_");
+      await setDoc(doc(db, COL, safeId), inv);
     }
 
     async function cloudDeleteInvoice(inv) {
-      const id = inv.invoice_number || inv.saved_at;
-      if (!id) return;
-      await deleteDoc(doc(db, COL, id));
+      const rawId = inv.invoice_number || inv.saved_at;
+      if (!rawId) return;
+      const safeId = String(rawId).replace(/\//g, "_");
+      await deleteDoc(doc(db, COL, safeId));
     }
 
     async function cloudReplaceHistory(all) {
