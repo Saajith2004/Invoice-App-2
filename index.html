@@ -573,6 +573,7 @@
 
     <label for="payment_terms">Payment Terms</label>
     <select id="payment_terms" oninput="updateInvoice()">
+      <option value="">-- Select Payment Terms --</option>
       <option value="Due on Receipt">Due on Receipt</option>
       <option value="7 Days">7 Days</option>
       <option value="14 Days">14 Days</option>
@@ -588,6 +589,53 @@
       <option value="Card">Card</option>
       <option value="Online Transfer">Online Transfer</option>
     </select>
+
+    <label for="bank_name" class="full">Bank Name</label>
+    <input id="bank_name" class="full" list="bank_name_list" oninput="updateInvoice()" placeholder="Start typing bank name...">
+    <datalist id="bank_name_list">
+      <option value="Alliance Finance Company PLC"></option>
+      <option value="Amana Bank PLC"></option>
+      <option value="Axis Bank"></option>
+      <option value="Bank of Ceylon"></option>
+      <option value="Cargills Bank Limited"></option>
+      <option value="Central Finance PLC"></option>
+      <option value="Citibank"></option>
+      <option value="Citizen Development Business Finance PLC"></option>
+      <option value="Commercial Bank PLC"></option>
+      <option value="Commercial Credit & Finance PLC"></option>
+      <option value="Commercial Leasing and Finance"></option>
+      <option value="Deutsche Bank"></option>
+      <option value="DFCC Bank PLC"></option>
+      <option value="Habib Bank Ltd"></option>
+      <option value="Hatton National Bank PLC"></option>
+      <option value="HDFC Bank"></option>
+      <option value="HSBC (Hongkong Shanghai Bank)"></option>
+      <option value="ICICI Bank Ltd"></option>
+      <option value="Indian Bank"></option>
+      <option value="Indian Overseas Bank"></option>
+      <option value="Lanka Orix Finance PLC"></option>
+      <option value="LB Finance PLC"></option>
+      <option value="MCB Bank Ltd"></option>
+      <option value="National Development Bank PLC"></option>
+      <option value="National Savings Bank"></option>
+      <option value="Nations Trust Bank PLC"></option>
+      <option value="Pan Asia Banking Corporation PLC"></option>
+      <option value="People's Bank"></option>
+      <option value="People’s Leasing & Finance PLC"></option>
+      <option value="Public Bank"></option>
+      <option value="Regional Development Bank"></option>
+      <option value="Sampath Bank PLC"></option>
+      <option value="Sanasa Development Bank"></option>
+      <option value="Seylan Bank PLC"></option>
+      <option value="Standard Chartered Bank"></option>
+      <option value="State Bank of India"></option>
+      <option value="Union Bank of Colombo PLC"></option>
+      <option value="Vallibel Finance PLC"></option>
+    </datalist>
+
+    <label for="bank_branch" class="full">Bank Branch</label>
+    <input id="bank_branch" class="full" list="bank_branch_list" oninput="updateInvoice()" placeholder="Start typing branch...">
+    <datalist id="bank_branch_list"></datalist>
 
     <label for="bank_account" class="full">Bank A/C No</label>
     <input id="bank_account" class="full" oninput="updateInvoice()" placeholder="e.g., 123-456-7890">
@@ -702,6 +750,9 @@
             <div style="margin-top:-23mm;font-size:11px;" id="payment_preview_block">
               <span id="p_terms_row"><strong>Payment Terms:</strong> <span id="p_terms"></span><br></span>
               <span id="p_type_row"><strong>Payment Type:</strong> <span id="p_type"></span><br></span>
+              <span id="p_vat_row"><strong>VAT / TRN / TIN:</strong> <span id="p_vat_value"></span><br></span>
+              <span id="p_bankname_row"><strong>Bank Name:</strong> <span id="p_bank_name"></span><br></span>
+              <span id="p_branch_row"><strong>Branch:</strong> <span id="p_bank_branch"></span><br></span>
               <span id="p_bank_row"><strong>Bank A/C No:</strong> <span id="p_bank_account"></span></span>
             </div>
 
@@ -827,6 +878,39 @@
     let currentCurrency = "LKR";
     let exchangeRates = { LKR: 1 };
 
+    // --- Offline Bank Branch Data (starter set).
+    // You can extend this list anytime by pasting more branches.
+    const BANK_BRANCHES = {
+      "Commercial Bank PLC": [
+        "Akkaraipattu","Akuressa","Aluthgama","Ambalangoda","Anuradhapura","Avissawella","Badulla","Bambalapitiya","Battaramulla","Batticaloa","Borella","Chilaw","City Office","Colombo 07","Dehiwala","Galle City","Gampaha","Hatton","Ja-Ela","Jaffna","Kadawatha","Kandy","Katunayake FTZ","Kegalle","Kiribathgoda","Kurunegala","Maharagama","Matara","Negombo","Nugegoda","Panadura","Pettah","Ratnapura","Wattala","Wellawatte"
+      ],
+      "Bank of Ceylon": [
+        "Head Office","Colombo","Kandy","Galle","Kurunegala","Negombo","Jaffna","Anuradhapura","Badulla","Batticaloa","Matara","Ratnapura","Chilaw","Nugegoda","Panadura"
+      ],
+      "People's Bank": [
+        "Head Office","Colombo","Kandy","Galle","Kurunegala","Negombo","Jaffna","Anuradhapura","Badulla","Batticaloa","Matara","Ratnapura","Chilaw","Nugegoda"
+      ],
+      "Hatton National Bank PLC": [
+        "Head Office","Colombo 03","Colombo 07","Kandy","Galle","Kurunegala","Negombo","Jaffna","Nugegoda","Panadura","Wattala","Matara"
+      ],
+      "Sampath Bank PLC": [
+        "Head Office","Colombo","Kandy","Galle","Kurunegala","Negombo","Jaffna","Nugegoda","Panadura","Wattala"
+      ]
+    };
+
+    function updateBranchList(bankName) {
+      const dl = document.getElementById('bank_branch_list');
+      if (!dl) return;
+      dl.innerHTML = '';
+      const branches = BANK_BRANCHES[bankName];
+      if (!branches) return;
+      branches.forEach(br => {
+        const opt = document.createElement('option');
+        opt.value = br;
+        dl.appendChild(opt);
+      });
+    }
+
     function addItem() {
       const id = ++itemCounter;
       const container = document.getElementById('items');
@@ -936,6 +1020,10 @@
       const termsVal = getVal('payment_terms');
       const typeVal  = getVal('payment_type');
       const vatVal   = getVal('customer_vat');
+      const bankNameVal = getVal('bank_name');
+      // update datalist options based on selected bank
+      updateBranchList(bankNameVal);
+      const bankBranchVal = getVal('bank_branch');
       const bankVal  = getVal('bank_account');
 
       // Payment Terms row
@@ -953,6 +1041,18 @@
       const pVatEl = document.getElementById('p_vat_value');
       if (pVatEl) pVatEl.textContent = vatVal;
       if (vatRow) vatRow.style.display = vatVal ? 'inline' : 'none';
+
+      // Bank Name row
+      const bankNameRow = document.getElementById('p_bankname_row');
+      const pBankNameEl = document.getElementById('p_bank_name');
+      if (pBankNameEl) pBankNameEl.textContent = bankNameVal;
+      if (bankNameRow) bankNameRow.style.display = bankNameVal ? 'inline' : 'none';
+
+      // Bank Branch row
+      const branchRow = document.getElementById('p_branch_row');
+      const pBranchEl = document.getElementById('p_bank_branch');
+      if (pBranchEl) pBranchEl.textContent = bankBranchVal;
+      if (branchRow) branchRow.style.display = bankBranchVal ? 'inline' : 'none';
 
       // Bank A/C row
       document.getElementById('p_bank_account').textContent = bankVal;
@@ -1053,6 +1153,8 @@
       return {
         company_name: getVal('company_name_input'),
         bank_account: getVal('bank_account'),
+        bank_name: getVal('bank_name'),
+        bank_branch: getVal('bank_branch'),
         customer_name: getVal('customer_name'),
         address1: getVal('customer_address_line1'),
         address2: getVal('customer_address_line2'),
@@ -1153,6 +1255,8 @@
 
       document.getElementById('company_name_input').value = inv.company_name || '';
       document.getElementById('bank_account').value = inv.bank_account || '';
+      document.getElementById('bank_name').value = inv.bank_name || '';
+      document.getElementById('bank_branch').value = inv.bank_branch || '';
       document.getElementById('customer_name').value = inv.customer_name || '';
       document.getElementById('customer_address_line1').value = inv.address1 || '';
       document.getElementById('customer_address_line2').value = inv.address2 || '';
@@ -1162,7 +1266,7 @@
       document.getElementById('due_date').value = inv.due_date || '';
       document.getElementById('chargeable_weight').value = inv.chargeable_weight || '';
       document.getElementById('flight_no').value = inv.flight_no || '';
-      document.getElementById('payment_terms').value = inv.payment_terms || 'Due on Receipt';
+      document.getElementById('payment_terms').value = inv.payment_terms || '';
       document.getElementById('customer_vat').value = inv.customer_vat || '';
       document.getElementById('customer_phone').value = inv.customer_phone || '';
       document.getElementById('customer_email').value = inv.customer_email || '';
@@ -1277,6 +1381,14 @@
     // on load
     addEventListener("DOMContentLoaded", async () => {
       setupTabs();
+      const bankNameInput = document.getElementById('bank_name');
+      if (bankNameInput) {
+        bankNameInput.addEventListener('input', () => {
+          document.getElementById('bank_branch').value = '';
+          updateBranchList(bankNameInput.value);
+          updateInvoice();
+        });
+      }
       document.getElementById("invoice_number").value = getNextInvoiceNumber();
       addItem();
       updateInvoice();
