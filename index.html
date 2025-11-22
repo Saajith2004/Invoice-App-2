@@ -468,6 +468,10 @@
       <option value="60 Days">60 Days</option>
     </select>
     <div style="display:flex;align-items:center;gap:6px;margin-top:6px;">
+      <input type="checkbox" id="show_payment_terms" checked oninput="updateInvoice()" style="width:auto;margin:0;">
+      <label for="show_payment_terms" style="margin:0;font-weight:600;font-size:12px;">Show Payment Terms in Preview</label>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;margin-top:6px;">
       <input type="checkbox" id="show_payment_type" checked oninput="updateInvoice()" style="width:auto;margin:0;">
       <label for="show_payment_type" style="margin:0;font-weight:600;font-size:12px;">Show Payment Type in Preview</label>
     </div>
@@ -597,10 +601,9 @@
           </table>
         </div>
             <div style="margin-top:-23mm;font-size:11px;" id="payment_preview_block">
-              <strong>Payment Terms:</strong> <span id="p_terms"></span><br>
+              <span id="p_terms_row"><strong>Payment Terms:</strong> <span id="p_terms"></span><br></span>
               <span id="p_type_row"><strong>Payment Type:</strong> <span id="p_type"></span><br></span>
               <span id="p_bank_row"><strong>Bank A/C No:</strong> <span id="p_bank_account"></span></span>
-              <span id="p_vat_row"><strong>VAT / TRN / TIN:</strong> <span id="p_vat_value"></span></span>
             </div>
 
         
@@ -818,7 +821,14 @@
       document.getElementById('p_flightno').textContent = getVal('flight_no');
       document.getElementById('p_flight').textContent = getVal('flight_date');
       document.getElementById('p_mawb').textContent   = getVal('mawb_number');
-      document.getElementById('p_terms').textContent  = getVal('payment_terms');
+      const termsVal = getVal('payment_terms');
+      document.getElementById('p_terms').textContent  = termsVal;
+
+      const showTerms = document.getElementById('show_payment_terms')?.checked;
+      const termsRow = document.getElementById('p_terms_row');
+      if (termsRow) {
+        termsRow.style.display = (showTerms && termsVal) ? 'inline' : 'none';
+      }
 
       const showType = document.getElementById('show_payment_type')?.checked;
       const showBank = document.getElementById('show_bank_account')?.checked;
@@ -841,14 +851,7 @@
       }
       const pBankEl = document.getElementById('p_bank_account');
       if (pBankEl) pBankEl.textContent = bankVal;
-      // VAT / TRN / TIN row
-      const showVat = document.getElementById('show_customer_vat')?.checked;
-      const vatRow = document.getElementById('p_vat_row');
-      if (vatRow) {
-        vatRow.style.display = (showVat && vat) ? 'inline' : 'none';
-      }
-      const pVatEl = document.getElementById('p_vat_value');
-      if (pVatEl) pVatEl.textContent = vat;
+
 
       // line items + totals
       let rowsHtml = `
@@ -939,6 +942,9 @@
           description: descs[i].value,
           amount: parseFloat(amts[i].value) || 0
         });
+
+      }
+
       }
       return {
         company_name: getVal('company_name_input'),
@@ -969,7 +975,9 @@
         saved_at: new Date().toISOString(),
         show_payment_type: document.getElementById('show_payment_type')?.checked,
         show_bank_account: document.getElementById('show_bank_account')?.checked,
-      };
+        show_payment_type: document.getElementById('show_payment_type')?.checked,
+        show_bank_account: document.getElementById('show_bank_account')?.checked,
+        show_payment_terms: document.getElementById('show_payment_terms')?.checked,
     }
 
     function renderHistory() {
@@ -1071,6 +1079,9 @@
       }
       if (document.getElementById('show_bank_account')) {
         document.getElementById('show_bank_account').checked = inv.show_bank_account !== false;
+      }
+      if (document.getElementById('show_payment_terms')) {
+        document.getElementById('show_payment_terms').checked = inv.show_payment_terms !== false;
       }
 
       if (inv.currency) {
