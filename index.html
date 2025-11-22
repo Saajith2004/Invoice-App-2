@@ -600,7 +600,7 @@
               <strong>Payment Terms:</strong> <span id="p_terms"></span><br>
               <span id="p_type_row"><strong>Payment Type:</strong> <span id="p_type"></span><br></span>
               <span id="p_bank_row"><strong>Bank A/C No:</strong> <span id="p_bank_account"></span></span>
-              <span id="p_vat_row"><strong>VAT / TRN / TIN:</strong> <span id="customer_vat"></span></span>
+              <span id="p_vat_row"><strong>VAT / TRN / TIN:</strong> <span id="p_vat_value"></span></span>
             </div>
 
         
@@ -793,11 +793,13 @@
       const vat = getVal('customer_vat');
       const cphone = getVal('customer_phone');
       const cemail = getVal('customer_email');
+      const showVatInBlock = document.getElementById('show_customer_vat')?.checked;
       document.getElementById('preview_customer').innerHTML = `
         <strong>${getVal('customer_name')}</strong><br>
         ${getVal('customer_address_line1')}<br>
         ${getVal('customer_address_line2')}<br>
         ${getVal('customer_country')}
+        ${(showVatInBlock && vat) ? `<br><strong>VAT/TRN/TIN:</strong> ${vat}` : ''}
         ${cphone ? `<br><strong>Phone:</strong> ${cphone}` : ''}
         ${cemail ? `<br><strong>Email:</strong> ${cemail}` : ''}
       `;
@@ -845,7 +847,7 @@
       if (vatRow) {
         vatRow.style.display = (showVat && vat) ? 'inline' : 'none';
       }
-      const pVatEl = document.getElementById('customer_vat');
+      const pVatEl = document.getElementById('p_vat_value');
       if (pVatEl) pVatEl.textContent = vat;
 
       // line items + totals
