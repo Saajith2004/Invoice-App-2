@@ -489,6 +489,11 @@
     <label for="bank_account">Bank A/C No</label>
     <input id="bank_account" oninput="updateInvoice()" placeholder="e.g., 123-456-7890">
 
+    <div style="display: flex; align-items: center; gap: 6px; margin-top: 6px;">
+      <input type="checkbox" id="show_customer_vat" checked oninput="updateInvoice()" style="width:auto;margin:0;">
+      <label for="show_customer_vat" style="margin:0;font-weight:600;font-size:12px;">Show VAT / TRN / TIN in Preview</label>
+    </div>
+
     <label for="customer_vat">VAT / TRN / TIN</label>
     <input id="customer_vat" oninput="updateInvoice()">
 
@@ -793,7 +798,6 @@
         ${getVal('customer_address_line1')}<br>
         ${getVal('customer_address_line2')}<br>
         ${getVal('customer_country')}
-        ${vat ? `<br><strong>VAT/TRN:</strong> ${vat}` : ''}
         ${cphone ? `<br><strong>Phone:</strong> ${cphone}` : ''}
         ${cemail ? `<br><strong>Email:</strong> ${cemail}` : ''}
       `;
@@ -835,6 +839,14 @@
       }
       const pBankEl = document.getElementById('p_bank_account');
       if (pBankEl) pBankEl.textContent = bankVal;
+      // VAT / TRN / TIN row
+      const showVat = document.getElementById('show_customer_vat')?.checked;
+      const vatRow = document.getElementById('p_vat_row');
+      if (vatRow) {
+        vatRow.style.display = (showVat && vat) ? 'inline' : 'none';
+      }
+      const pVatEl = document.getElementById('customer_vat');
+      if (pVatEl) pVatEl.textContent = vat;
 
       // line items + totals
       let rowsHtml = `
