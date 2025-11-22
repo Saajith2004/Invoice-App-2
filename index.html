@@ -403,6 +403,9 @@
     <label for="company_name_input">Company Name</label>
     <input id="company_name_input" value="Airwave Freight Pvt Ltd" oninput="updateInvoice()">
 
+    <label for="bank_account">Bank Account No</label>
+    <input id="bank_account" oninput="updateInvoice()" placeholder="e.g., 123-456-7890">
+
     <label for="customer_name">Customer Name</label>
     <input id="customer_name" oninput="updateInvoice()">
 
@@ -563,16 +566,14 @@
         
 
         <!-- disclaimer -->
-        <div class="disclaimer">
-          <p>Please use the following communication for your payment:</p>
-          <p>This is computer generated. no signature required.</p>
-        </div>
+        <div class="disclaimer" id="disclaimer_text"></div>
       </div>
 
       <!-- FOOTER -->
       <div class="invoice-footer">
-        <strong>Airwave Freight Pvt Ltd</strong><br>
-        No. 339/68 Sixty feet Road, Kattuwa, Negombo — Phone: 031 212 1334 — Email: airwavefreight.lk@gmail.com
+        <strong id="footer_company_name">Airwave Freight Pvt Ltd</strong><br>
+        No. 339/68 Sixty feet Road, Kattuwa, Negombo — Phone: 031 212 1334 — Email: airwavefreight.lk@gmail.com<br>
+        <span id="footer_bank"></span>
       </div>
     </div>
 
@@ -728,6 +729,21 @@
       const companyName = getVal('company_name_input') || 'Airwave Freight Pvt Ltd';
       document.getElementById('company_name').textContent = companyName;
 
+      // disclaimer text (uses current company name)
+      const disclaimer = `CHEQUES SHOULD BE DRAWN IN FAVOUR OF "${companyName}" AND CROSSED "ACCOUNT PAYEE".
+ANY DISPUTES ON THE CONTENTS OF THE INVOICE SHOULD BE COMMUNICATED TO "${companyName}" IMMEDIATELY. INTEREST AT THE RATE OF 2% PER MONTH WILL BE LEVIED IF SETTLEMENT IS NOT EFFECTED WITHIN DUE DATE OF INVOICE.`;
+      const discEl = document.getElementById('disclaimer_text');
+      if (discEl) {
+        discEl.innerHTML = disclaimer.replace(/\n/g, '<br>');
+      }
+
+      // footer dynamic company + bank account
+      const bankAcc = getVal('bank_account');
+      const footerNameEl = document.getElementById('footer_company_name');
+      if (footerNameEl) footerNameEl.textContent = companyName;
+      const footerBankEl = document.getElementById('footer_bank');
+      if (footerBankEl) footerBankEl.textContent = bankAcc ? `Bank A/C No: ${bankAcc}` : '';
+
       // customer block
       const vat = getVal('customer_vat');
       const cphone = getVal('customer_phone');
@@ -850,6 +866,7 @@
       }
       return {
         company_name: getVal('company_name_input'),
+        bank_account: getVal('bank_account'),
         customer_name: getVal('customer_name'),
         address1: getVal('customer_address_line1'),
         address2: getVal('customer_address_line2'),
@@ -934,6 +951,7 @@
       if (!inv) return;
 
       document.getElementById('company_name_input').value = inv.company_name || '';
+      document.getElementById('bank_account').value = inv.bank_account || '';
       document.getElementById('customer_name').value = inv.customer_name || '';
       document.getElementById('customer_address_line1').value = inv.address1 || '';
       document.getElementById('customer_address_line2').value = inv.address2 || '';
@@ -999,6 +1017,7 @@
       document.getElementById('customer_email').value = '';
       document.getElementById('service_percent').value = 0;
       document.getElementById('vat_percent').value = 0;
+      document.getElementById('bank_account').value = '';
 
       const sel = document.getElementById('currency_selector');
       if (sel) sel.value = 'LKR';
