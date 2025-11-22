@@ -579,14 +579,6 @@
       <option value="30 Days">30 Days</option>
       <option value="60 Days">60 Days</option>
     </select>
-    <div style="display:flex;align-items:center;gap:6px;margin-top:6px;">
-      <input type="checkbox" id="show_payment_terms" checked oninput="updateInvoice()" style="width:auto;margin:0;">
-      <label for="show_payment_terms" style="margin:0;font-weight:600;font-size:12px;">Show Payment Terms in Preview</label>
-    </div>
-    <div style="display:flex;align-items:center;gap:6px;margin-top:6px;">
-      <input type="checkbox" id="show_payment_type" checked oninput="updateInvoice()" style="width:auto;margin:0;">
-      <label for="show_payment_type" style="margin:0;font-weight:600;font-size:12px;">Show Payment Type in Preview</label>
-    </div>
 
     <label for="payment_type">Payment Type</label>
     <select id="payment_type" oninput="updateInvoice()">
@@ -597,18 +589,8 @@
       <option value="Online Transfer">Online Transfer</option>
     </select>
 
-    <div style="display:flex;align-items:center;gap:6px;margin-top:6px;">
-      <input type="checkbox" id="show_bank_account" checked oninput="updateInvoice()" style="width:auto;margin:0;">
-      <label for="show_bank_account" style="margin:0;font-weight:600;font-size:12px;">Show Bank A/C No in Preview</label>
-    </div>
-
     <label for="bank_account" class="full">Bank A/C No</label>
     <input id="bank_account" class="full" oninput="updateInvoice()" placeholder="e.g., 123-456-7890">
-
-    <div class="full" style="display: flex; align-items: center; gap: 6px; margin-top: 6px;">
-      <input type="checkbox" id="show_customer_vat" checked oninput="updateInvoice()" style="width:auto;margin:0;">
-      <label for="show_customer_vat" class="full" style="margin:0;font-weight:600;font-size:12px;">Show VAT / TRN / TIN in Preview</label>
-    </div>
 
     <label for="customer_vat">VAT / TRN / TIN</label>
     <input id="customer_vat" oninput="updateInvoice()">
@@ -922,20 +904,17 @@
       const footerNameEl = document.getElementById('footer_company_name');
       if (footerNameEl) footerNameEl.textContent = companyName;
       const footerBankEl = document.getElementById('footer_bank');
-      const showBankFooter = document.getElementById('show_bank_account')?.checked;
-      if (footerBankEl) footerBankEl.textContent = (showBankFooter && bankAcc) ? `Bank A/C No: ${bankAcc}` : '';
+      if (footerBankEl) footerBankEl.textContent = bankAcc ? `Bank A/C No: ${bankAcc}` : '';
 
       // customer block
       const vat = getVal('customer_vat');
       const cphone = getVal('customer_phone');
       const cemail = getVal('customer_email');
-      const showVatInBlock = document.getElementById('show_customer_vat')?.checked;
       document.getElementById('preview_customer').innerHTML = `
         <strong>${getVal('customer_name')}</strong><br>
         ${getVal('customer_address_line1')}<br>
         ${getVal('customer_address_line2')}<br>
         ${getVal('customer_country')}
-        ${(showVatInBlock && vat) ? `<br><strong>VAT/TRN/TIN:</strong> ${vat}` : ''}
         ${cphone ? `<br><strong>Phone:</strong> ${cphone}` : ''}
         ${cemail ? `<br><strong>Email:</strong> ${cemail}` : ''}
       `;
@@ -955,34 +934,30 @@
       document.getElementById('p_flight').textContent = getVal('flight_date');
       document.getElementById('p_mawb').textContent   = getVal('mawb_number');
       const termsVal = getVal('payment_terms');
+      const typeVal  = getVal('payment_type');
+      const vatVal   = getVal('customer_vat');
+      const bankVal  = getVal('bank_account');
+
+      // Payment Terms row
       document.getElementById('p_terms').textContent = termsVal;
-      const showTerms = document.getElementById('show_payment_terms')?.checked;
       const termsRow = document.getElementById('p_terms_row');
-      if (termsRow) {
-        termsRow.style.display = (showTerms && termsVal) ? 'inline' : 'none';
-      }
-
-      const showType = document.getElementById('show_payment_type')?.checked;
-      const showBank = document.getElementById('show_bank_account')?.checked;
-
-      const typeVal = getVal('payment_type');
-      const bankVal = getVal('bank_account');
+      if (termsRow) termsRow.style.display = termsVal ? 'inline' : 'none';
 
       // Payment Type row
+      document.getElementById('p_type').textContent = typeVal;
       const typeRow = document.getElementById('p_type_row');
-      if (typeRow) {
-        typeRow.style.display = (showType && typeVal) ? 'inline' : 'none';
-      }
-      const pTypeEl = document.getElementById('p_type');
-      if (pTypeEl) pTypeEl.textContent = typeVal;
+      if (typeRow) typeRow.style.display = typeVal ? 'inline' : 'none';
+
+      // VAT/TRN/TIN row (only here)
+      const vatRow = document.getElementById('p_vat_row');
+      const pVatEl = document.getElementById('p_vat_value');
+      if (pVatEl) pVatEl.textContent = vatVal;
+      if (vatRow) vatRow.style.display = vatVal ? 'inline' : 'none';
 
       // Bank A/C row
+      document.getElementById('p_bank_account').textContent = bankVal;
       const bankRow = document.getElementById('p_bank_row');
-      if (bankRow) {
-        bankRow.style.display = (showBank && bankVal) ? 'inline' : 'none';
-      }
-      const pBankEl = document.getElementById('p_bank_account');
-      if (pBankEl) pBankEl.textContent = bankVal;
+      if (bankRow) bankRow.style.display = bankVal ? 'inline' : 'none';
 
 
       // line items + totals
@@ -1102,9 +1077,6 @@
         subtotal: document.getElementById('subtotal').textContent,
         total: document.getElementById('total').textContent,
         saved_at: new Date().toISOString(),
-        show_payment_terms: document.getElementById('show_payment_terms')?.checked,
-        show_payment_type: document.getElementById('show_payment_type')?.checked,
-        show_bank_account: document.getElementById('show_bank_account')?.checked,
       };
     }
 
@@ -1202,15 +1174,6 @@
       document.getElementById('vat_percent').value = inv.vat_percent || 0;
       document.getElementById('payment_type').value = inv.payment_type || 'Bank Transfer';
 
-      if (document.getElementById('show_payment_type')) {
-        document.getElementById('show_payment_type').checked = inv.show_payment_type !== false;
-      }
-      if (document.getElementById('show_bank_account')) {
-        document.getElementById('show_bank_account').checked = inv.show_bank_account !== false;
-      }
-      if (document.getElementById('show_payment_terms')) {
-        document.getElementById('show_payment_terms').checked = inv.show_payment_terms !== false;
-      }
 
       if (inv.currency) {
         currentCurrency = inv.currency;
