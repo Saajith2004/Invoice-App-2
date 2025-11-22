@@ -241,9 +241,17 @@
     }
 
     .disclaimer {
-      margin-top: 10mm;
+      margin-top: 6mm;
       font-size: 11px;
       line-height: 1.4;
+      text-align: left;
+    }
+
+    #cheque_text {
+      margin-top: 28mm; /* push to bottom area like PDF */
+      font-size: 9.5px;
+      line-height: 1.35;
+      text-align: center;
     }
 
     .disclaimer p { margin: 0 0 2px 0; }
@@ -565,8 +573,14 @@
 
         
 
-        <!-- disclaimer -->
-        <div class="disclaimer" id="disclaimer_text"></div>
+        <!-- disclaimer (matches PDF layout) -->
+        <div class="disclaimer">
+          <p>Please use the following communication for your payment:</p>
+          <p>This is computer generated. no signature required.</p>
+        </div>
+
+        <!-- cheque / disputes note (dynamic company name) -->
+        <div class="disclaimer" id="cheque_text"></div>
       </div>
 
       <!-- FOOTER -->
@@ -729,13 +743,10 @@
       const companyName = getVal('company_name_input') || 'Airwave Freight Pvt Ltd';
       document.getElementById('company_name').textContent = companyName;
 
-      // disclaimer text (uses current company name)
-      const disclaimer = `CHEQUES SHOULD BE DRAWN IN FAVOUR OF "${companyName}" AND CROSSED "ACCOUNT PAYEE".
-ANY DISPUTES ON THE CONTENTS OF THE INVOICE SHOULD BE COMMUNICATED TO "${companyName}" IMMEDIATELY. INTEREST AT THE RATE OF 2% PER MONTH WILL BE LEVIED IF SETTLEMENT IS NOT EFFECTED WITHIN DUE DATE OF INVOICE.`;
-      const discEl = document.getElementById('disclaimer_text');
-      if (discEl) {
-        discEl.innerHTML = disclaimer.replace(/\n/g, '<br>');
-      }
+      // cheque / disputes note (uses current company name)
+      const chequeNote = `CHEQUES SHOULD BE DRAWN IN FAVOUR OF "${companyName}" AND CROSSED "ACCOUNT PAYEE". ANY DISPUTES ON THE CONTENTS OF THE INVOICE SHOULD BE COMMUNICATED TO ${companyName} IMMEDIATELY. INTEREST AT THE RATE OF 2% PER MONTH WILL BE LEVIED IF SETTLEMENT IS NOT EFFECTED WITHIN DUE DATE OF INVOICE.`;
+      const chequeEl = document.getElementById('cheque_text');
+      if (chequeEl) chequeEl.textContent = chequeNote;
 
       // footer dynamic company + bank account
       const bankAcc = getVal('bank_account');
