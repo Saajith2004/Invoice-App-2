@@ -17,56 +17,111 @@
       box-sizing: border-box;
     }
 
+    :root {
+      --bg: #eef2f7;
+      --panel: #ffffff;
+      --panel-border: #e3e8ef;
+      --text: #0f172a;
+      --muted: #64748b;
+      --brand: #2563eb;
+      --brand-2: #7c3aed;
+      --ok: #16a34a;
+      --danger: #ef4444;
+      --ring: 0 0 0 3px rgba(37, 99, 235, .15);
+      --radius: 10px;
+    }
+
     body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      margin: 18px;
       display: flex;
-      gap: 24px;
-      background: linear-gradient(135deg, #f4f5f7, #e9eef5);
+      gap: 20px;
+      background: radial-gradient(1200px 600px at 0% 0%, #f8fafc 0%, var(--bg) 55%, #e9eef5 100%);
+      color: var(--text);
     }
 
     input, textarea, select {
       width: 100%;
-      padding: 6px 8px;
-      margin-bottom: 6px;
-      font-size: 13px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
+      padding: 9px 10px;
+      margin-bottom: 8px;
+      font-size: 13.5px;
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      background: #f8fafc;
+      transition: border .18s ease, box-shadow .18s ease, background .18s ease;
+      outline: none;
+    }
+
+    input:hover, textarea:hover, select:hover {
+      border-color: #cbd5e1;
+      background: #ffffff;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--brand);
+      box-shadow: var(--ring);
+      background: #ffffff;
     }
 
     label {
-      font-weight: 600;
+      font-weight: 800;
       font-size: 12px;
       display: block;
-      margin-top: 6px;
-      margin-bottom: 2px;
+      margin-top: 8px;
+      margin-bottom: 4px;
+      color: var(--muted);
+      letter-spacing: .02em;
+      text-transform: uppercase;
     }
 
     /* ========== LEFT INPUT PANEL ========== */
     .form-container {
-      width: 32%;
-      background: #ffffff;
-      border-radius: 8px;
-      border: 1px solid #d0d3da;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.06);
-      padding: 12px 14px;
+      width: 34%;
+      background: var(--panel);
+      border-radius: var(--radius);
+      border: 1px solid var(--panel-border);
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+      padding: 14px 16px;
       display: flex;
       flex-direction: column;
       height: fit-content;
+      position: sticky;
+      top: 12px;
     }
 
     .form-container h2 {
-      font-size: 16px;
-      margin: 0 0 10px 0;
-      color: #222;
+      font-size: 17px;
+      margin: 0 0 12px 0;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .form-container h2::before {
+      content: "🧾";
+      font-size: 18px;
     }
 
     .section-title {
-      margin-top: 10px;
-      font-size: 13px;
-      font-weight: 700;
-      border-top: 1px solid #e0e0e0;
-      padding-top: 8px;
+      margin-top: 14px;
+      font-size: 12.5px;
+      font-weight: 900;
+      border-top: 1px dashed #e2e8f0;
+      padding-top: 10px;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-title::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--brand), var(--brand-2));
+      display: inline-block;
     }
 
     .line-items-wrapper {
@@ -90,41 +145,31 @@
       text-align: right;
     }
 
-    .add-btn, .remove-btn {
-      border-radius: 6px;
-      border: none;
-      cursor: pointer;
-      font-size: 12px;
-      padding: 6px 10px;
-      transition: 0.2s;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-    }
-
     .add-btn {
-      background: #198754;
+      background: linear-gradient(135deg, var(--ok), #22c55e);
       color: white;
-      font-size: 13px;
-      font-weight: 600;
+      font-size: 13.5px;
+      font-weight: 800;
       gap: 6px;
-      margin-top: 4px;
+      margin-top: 6px;
+      box-shadow: 0 6px 14px rgba(34, 197, 94, .28);
     }
 
     .add-btn span { font-size: 15px; }
-    .add-btn:hover { background: #157347; }
+    .add-btn:hover { transform: translateY(-1px); filter: brightness(0.98); }
 
     .remove-btn {
-      background: #dc3545;
+      background: linear-gradient(135deg, var(--danger), #f97316);
       color: #fff;
-      width: 26px;
-      height: 26px;
-      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
       font-size: 14px;
       margin-top: 22px;
+      box-shadow: 0 5px 10px rgba(239, 68, 68, .25);
     }
 
-    .remove-btn:hover { background: #bb2d3b; }
+    .remove-btn:hover { transform: scale(1.05); }
 
     /* ========== PREVIEW / A4 INVOICE CONTAINER ========== */
     .preview-wrapper {
@@ -308,18 +353,29 @@
     }
 
     .actions button {
-      padding: 8px 18px;
-      margin-right: 10px;
-      background: #0d6efd;
-      color: #fff;
+      padding: 9px 18px;
+      margin-right: 8px;
       border: none;
-      border-radius: 6px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      border-radius: 10px;
       cursor: pointer;
       font-size: 14px;
+      font-weight: 800;
+      color: #fff;
+      box-shadow: 0 8px 18px rgba(15, 23, 42, .15);
+      transition: transform .15s ease, filter .15s ease;
     }
 
-    .actions button:hover { background: #0b5ed7; }
+    .actions button:nth-child(1) { background: linear-gradient(135deg, var(--brand), #0ea5e9); }
+    .actions button:nth-child(2) { background: linear-gradient(135deg, #22c55e, #16a34a); }
+    .actions button:nth-child(3) { background: linear-gradient(135deg, var(--brand-2), #ec4899); }
+
+    .actions button:hover { transform: translateY(-1px); filter: brightness(0.98); }
+    @media (max-width: 1100px) {
+      body { flex-direction: column; }
+      .form-container { width: 100%; position: static; }
+      .preview-wrapper { width: 100%; }
+      .invoice-container { transform: scale(0.98); transform-origin: top center; }
+    }
 
     /* History panel */
     .history-panel {
@@ -467,12 +523,6 @@
       <option value="30 Days">30 Days</option>
       <option value="60 Days">60 Days</option>
     </select>
-
-    <div style="display:flex;align-items:center;gap:6px;margin-top:6px;">
-      <input type="checkbox" id="show_payment_terms" checked oninput="updateInvoice()" style="width:auto;margin:0;">
-      <label for="show_payment_terms" style="margin:0;font-weight:600;font-size:12px;">Show Payment Terms in Preview</label>
-    </div>
-
     <div style="display:flex;align-items:center;gap:6px;margin-top:6px;">
       <input type="checkbox" id="show_payment_type" checked oninput="updateInvoice()" style="width:auto;margin:0;">
       <label for="show_payment_type" style="margin:0;font-weight:600;font-size:12px;">Show Payment Type in Preview</label>
@@ -603,9 +653,8 @@
           </table>
         </div>
             <div style="margin-top:-23mm;font-size:11px;" id="payment_preview_block">
-              <span id="p_terms_row"><strong>Payment Terms:</strong> <span id="p_terms"></span><br></span>
+              <strong>Payment Terms:</strong> <span id="p_terms"></span><br>
               <span id="p_type_row"><strong>Payment Type:</strong> <span id="p_type"></span><br></span>
-              <span id="p_vat_row"><strong>VAT / TRN / TIN:</strong> <span id="p_vat_value"></span><br></span>
               <span id="p_bank_row"><strong>Bank A/C No:</strong> <span id="p_bank_account"></span></span>
             </div>
 
@@ -799,11 +848,13 @@
       const vat = getVal('customer_vat');
       const cphone = getVal('customer_phone');
       const cemail = getVal('customer_email');
+      const showVatInBlock = document.getElementById('show_customer_vat')?.checked;
       document.getElementById('preview_customer').innerHTML = `
         <strong>${getVal('customer_name')}</strong><br>
         ${getVal('customer_address_line1')}<br>
         ${getVal('customer_address_line2')}<br>
         ${getVal('customer_country')}
+        ${(showVatInBlock && vat) ? `<br><strong>VAT/TRN/TIN:</strong> ${vat}` : ''}
         ${cphone ? `<br><strong>Phone:</strong> ${cphone}` : ''}
         ${cemail ? `<br><strong>Email:</strong> ${cemail}` : ''}
       `;
@@ -822,22 +873,13 @@
       document.getElementById('p_flightno').textContent = getVal('flight_no');
       document.getElementById('p_flight').textContent = getVal('flight_date');
       document.getElementById('p_mawb').textContent   = getVal('mawb_number');
-      const termsVal = getVal('payment_terms');
-      document.getElementById('p_terms').textContent  = termsVal;
-
-      const showTerms = document.getElementById('show_payment_terms')?.checked;
-      const termsRow = document.getElementById('p_terms_row');
-      if (termsRow) {
-        termsRow.style.display = (showTerms && termsVal) ? 'inline' : 'none';
-      }
+      document.getElementById('p_terms').textContent  = getVal('payment_terms');
 
       const showType = document.getElementById('show_payment_type')?.checked;
       const showBank = document.getElementById('show_bank_account')?.checked;
-      const showVat  = document.getElementById('show_customer_vat')?.checked;
 
       const typeVal = getVal('payment_type');
       const bankVal = getVal('bank_account');
-      const vatVal  = getVal('customer_vat');
 
       // Payment Type row
       const typeRow = document.getElementById('p_type_row');
@@ -846,14 +888,6 @@
       }
       const pTypeEl = document.getElementById('p_type');
       if (pTypeEl) pTypeEl.textContent = typeVal;
-
-      // VAT/TRN/TIN row (ONLY here)
-      const vatRow = document.getElementById('p_vat_row');
-      if (vatRow) {
-        vatRow.style.display = (showVat && vatVal) ? 'inline' : 'none';
-      }
-      const pVatEl = document.getElementById('p_vat_value');
-      if (pVatEl) pVatEl.textContent = vatVal;
 
       // Bank A/C row
       const bankRow = document.getElementById('p_bank_row');
@@ -981,10 +1015,8 @@
         subtotal: document.getElementById('subtotal').textContent,
         total: document.getElementById('total').textContent,
         saved_at: new Date().toISOString(),
-        show_payment_terms: document.getElementById('show_payment_terms')?.checked,
         show_payment_type: document.getElementById('show_payment_type')?.checked,
         show_bank_account: document.getElementById('show_bank_account')?.checked,
-        show_customer_vat: document.getElementById('show_customer_vat')?.checked,
       };
     }
 
@@ -1087,12 +1119,6 @@
       }
       if (document.getElementById('show_bank_account')) {
         document.getElementById('show_bank_account').checked = inv.show_bank_account !== false;
-      }
-      if (document.getElementById('show_payment_terms')) {
-        document.getElementById('show_payment_terms').checked = inv.show_payment_terms !== false;
-      }
-      if (document.getElementById('show_customer_vat')) {
-        document.getElementById('show_customer_vat').checked = inv.show_customer_vat !== false;
       }
 
       if (inv.currency) {
