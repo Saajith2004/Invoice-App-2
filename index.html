@@ -470,6 +470,11 @@
       <option value="30 Days">30 Days</option>
       <option value="60 Days">60 Days</option>
     </select>
+    <div style="display:flex;align-items:center;gap:6px;margin-top:6px;">
+      <input type="checkbox" id="show_payment_type" checked oninput="updateInvoice()" style="width:auto;margin:0;">
+      <label for="show_payment_type" style="margin:0;font-weight:600;font-size:12px;">Show Payment Type in Preview</label>
+    </div>
+
     <label for="payment_type">Payment Type</label>
     <select id="payment_type" oninput="updateInvoice()">
       <option value="Bank Transfer">Bank Transfer</option>
@@ -478,6 +483,12 @@
       <option value="Card">Card</option>
       <option value="Online Transfer">Online Transfer</option>
     </select>
+
+    <div style="display:flex;align-items:center;gap:6px;margin-top:6px;">
+      <input type="checkbox" id="show_bank_account" checked oninput="updateInvoice()" style="width:auto;margin:0;">
+      <label for="show_bank_account" style="margin:0;font-weight:600;font-size:12px;">Show Bank A/C No in Preview</label>
+    </div>
+
     <label for="bank_account">Bank A/C No</label>
     <input id="bank_account" oninput="updateInvoice()" placeholder="e.g., 123-456-7890">
 
@@ -580,10 +591,10 @@
             </tr>
           </table>
         </div>
-            <div style="margin-top:-23mm;font-size:11px;">
+            <div style="margin-top:-23mm;font-size:11px;" id="payment_preview_block">
               <strong>Payment Terms:</strong> <span id="p_terms"></span><br>
-              <strong>Payment Type:</strong> <span id="p_type"></span><br>
-              <strong>Bank A/C No:</strong> <span id="p_bank_account"></span>
+              <span id="p_type_row"><strong>Payment Type:</strong> <span id="p_type"></span><br></span>
+              <span id="p_bank_row"><strong>Bank A/C No:</strong> <span id="p_bank_account"></span></span>
             </div>
 
         
@@ -609,9 +620,9 @@
 
     <!-- ACTIONS + HISTORY -->
     <div class="actions">
-      <button type="button" onclick="window.print()">Print / Save as PDF</button>
+      <button type="button" onclick="handlePrint()">Print / Save as PDF</button>
       <button type="button" onclick="saveInvoice()">Save Invoice</button>
-      <button type="button" onclick="startNewInvoice()">New Invoice</button>
+      <button type="button" onclick="refreshPage()">New Invoice</button>
     </div>
 
     <div class="history-panel" id="history_panel">
@@ -769,7 +780,8 @@
       const footerNameEl = document.getElementById('footer_company_name');
       if (footerNameEl) footerNameEl.textContent = companyName;
       const footerBankEl = document.getElementById('footer_bank');
-      if (footerBankEl) footerBankEl.textContent = bankAcc ? `Bank A/C No: ${bankAcc}` : '';
+      const showBankFooter = document.getElementById('show_bank_account')?.checked;
+      if (footerBankEl) footerBankEl.textContent = (showBankFooter && bankAcc) ? `Bank A/C No: ${bankAcc}` : '';
 
       // customer block
       const vat = getVal('customer_vat');
@@ -800,7 +812,28 @@
       document.getElementById('p_flight').textContent = getVal('flight_date');
       document.getElementById('p_mawb').textContent   = getVal('mawb_number');
       document.getElementById('p_terms').textContent  = getVal('payment_terms');
-      document.getElementById('p_type').textContent   = getVal('payment_type');
+
+      const showType = document.getElementById('show_payment_type')?.checked;
+      const showBank = document.getElementById('show_bank_account')?.checked;
+
+      const typeVal = getVal('payment_type');
+      const bankVal = getVal('bank_account');
+
+      // Payment Type row
+      const typeRow = document.getElementById('p_type_row');
+      if (typeRow) {
+        typeRow.style.display = (showType && typeVal) ? 'inline' : 'none';
+      }
+      const pTypeEl = document.getElementById('p_type');
+      if (pTypeEl) pTypeEl.textContent = typeVal;
+
+      // Bank A/C row
+      const bankRow = document.getElementById('p_bank_row');
+      if (bankRow) {
+        bankRow.style.display = (showBank && bankVal) ? 'inline' : 'none';
+      }
+      const pBankEl = document.getElementById('p_bank_account');
+      if (pBankEl) pBankEl.textContent = bankVal;
 
       // line items + totals
       let rowsHtml = `
@@ -918,7 +951,9 @@
         currency: currentCurrency,
         subtotal: document.getElementById('subtotal').textContent,
         total: document.getElementById('total').textContent,
-        saved_at: new Date().toISOString()
+        saved_at: new Date().toISOString(),
+        show_payment_type: document.getElementById('show_payment_type')?.checked,
+        show_bank_account: document.getElementById('show_bank_account')?.checked,
       };
     }
 
@@ -966,7 +1001,21 @@
       if (window.cloudUpsertInvoice) window.cloudUpsertInvoice(inv);
 
       alert('Invoice saved.');
+      // refresh to load a clean new invoice
+      refreshPage();
     }
+    function refreshPage() {
+      location.reload();
+    }
+
+    function handlePrint() {
+      window.print();
+    }
+
+    // after print dialog closes, refresh page
+    window.addEventListener('afterprint', () => {
+      refreshPage();
+    });
 
     function clearLineItems() {
       const container = document.getElementById('items');
@@ -1002,6 +1051,13 @@
       document.getElementById('vat_percent').value = inv.vat_percent || 0;
       document.getElementById('payment_type').value = inv.payment_type || 'Bank Transfer';
 
+      if (document.getElementById('show_payment_type')) {
+        document.getElementById('show_payment_type').checked = inv.show_payment_type !== false;
+      }
+      if (document.getElementById('show_bank_account')) {
+        document.getElementById('show_bank_account').checked = inv.show_bank_account !== false;
+      }
+
       if (inv.currency) {
         currentCurrency = inv.currency;
         const sel = document.getElementById('currency_selector');
@@ -1029,36 +1085,6 @@
       updateInvoice();
     }
 
-    function startNewInvoice() {
-      document.getElementById('customer_name').value = '';
-      document.getElementById('customer_address_line1').value = '';
-      document.getElementById('customer_address_line2').value = '';
-      document.getElementById('customer_country').value = '';
-      document.getElementById('invoice_reference').value = '';
-      document.getElementById('flight_date').value = '';
-      document.getElementById('mawb_number').value = '';
-      document.getElementById('invoice_date').value = '';
-      document.getElementById('due_date').value = '';
-      document.getElementById('chargeable_weight').value = '';
-      document.getElementById('flight_no').value = '';
-      document.getElementById('payment_terms').value = 'Due on Receipt';
-      document.getElementById('payment_type').value = 'Bank Transfer';
-      document.getElementById('customer_vat').value = '';
-      document.getElementById('customer_phone').value = '';
-      document.getElementById('customer_email').value = '';
-      document.getElementById('service_percent').value = 0;
-      document.getElementById('vat_percent').value = 0;
-      document.getElementById('bank_account').value = '';
-
-      const sel = document.getElementById('currency_selector');
-      if (sel) sel.value = 'LKR';
-      currentCurrency = 'LKR';
-
-      clearLineItems();
-      addItem();
-      document.getElementById('invoice_number').value = getNextInvoiceNumber();
-      updateInvoice();
-    }
 
     function deleteInvoice(index) {
       const list = loadHistoryFromStorage();
