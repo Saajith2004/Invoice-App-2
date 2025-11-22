@@ -693,7 +693,7 @@
         </div>
         <div class="customer-block" id="preview_customer"></div>
         <div class="invoice-title" id="preview_invoice_number">
-          PRO-FORMA INVOICE
+          INVOICE No.
         </div>
       </div>
 
@@ -960,6 +960,24 @@
       updateInvoice();
     }
 
+    // --- Payment Terms Due Date Helpers ---
+    function parsePaymentDays(term) {
+      // term examples: "7 Days", "14 Days", etc.
+      const m = String(term || '').match(/(\d+)\s*Days/i);
+      return m ? parseInt(m[1], 10) : 0;
+    }
+
+    function addDaysToISODate(isoDateStr, days) {
+      if (!isoDateStr) return '';
+      const d = new Date(isoDateStr + 'T00:00:00');
+      if (isNaN(d.getTime())) return '';
+      d.setDate(d.getDate() + days);
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    }
+
     async function fetchExchangeRates() {
       try {
         const res = await fetch('https://api.exchangerate.host/latest?base=LKR');
@@ -1008,12 +1026,36 @@
       const invNum = getVal('invoice_number');
       document.getElementById('preview_invoice_number').textContent =
         invNum
-          ? 'PRO-FORMA INVOICE NUMBER - ' + invNum
-          : 'PRO-FORMA INVOICE';
+          ? 'INVOICE NUMBER - ' + invNum
+          : 'INVOICE No.';
 
-      // meta
-      document.getElementById('p_date').textContent   = getVal('invoice_date');
-      document.getElementById('p_due').textContent    = getVal('due_date');
+      // meta mapping for dates (auto-calc due date if applicable)
+      const invDateVal = getVal('invoice_date');
+      const termForDue = getVal('payment_terms');
+      const dueInput = document.getElementById('due_date');
+
+      const daysToAdd = parsePaymentDays(termForDue);
+      if (daysToAdd > 0) {
+        // Auto-calc due date from invoice date (or today if not set)
+        const baseISO = invDateVal || new Date().toISOString().slice(0,10);
+        const autoDue = addDaysToISODate(baseISO, daysToAdd);
+        if (dueInput) {
+          dueInput.value = autoDue;
+          dueInput.disabled = true; // not selectable when auto
+          dueInput.style.background = '#eef2f7';
+          dueInput.title = `Auto-calculated from Payment Terms (${daysToAdd} days)`;
+        }
+      } else {
+        // Due on Receipt or blank -> user selectable
+        if (dueInput) {
+          dueInput.disabled = false;
+          dueInput.style.background = '';
+          dueInput.title = '';
+        }
+      }
+
+      document.getElementById('p_date').textContent = invDateVal;
+      document.getElementById('p_due').textContent  = getVal('due_date');
       document.getElementById('p_cw').textContent     = getVal('chargeable_weight');
       document.getElementById('p_flightno').textContent = getVal('flight_no');
       document.getElementById('p_flight').textContent = getVal('flight_date');
@@ -1059,7 +1101,6 @@
       document.getElementById('p_bank_account').textContent = bankVal;
       const bankRow = document.getElementById('p_bank_row');
       if (bankRow) bankRow.style.display = bankVal ? 'inline' : 'none';
-
 
       // line items + totals
       let rowsHtml = `
