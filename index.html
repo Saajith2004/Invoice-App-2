@@ -413,6 +413,15 @@
     <label for="customer_country">Country</label>
     <input id="customer_country" oninput="updateInvoice()">
 
+    <label for="customer_vat">Customer VAT / TRN / TIN</label>
+    <input id="customer_vat" oninput="updateInvoice()">
+
+    <label for="customer_phone">Customer Phone</label>
+    <input id="customer_phone" oninput="updateInvoice()">
+
+    <label for="customer_email">Customer Email</label>
+    <input id="customer_email" oninput="updateInvoice()">
+
     <div class="section-title">Invoice Details</div>
 
     <label for="currency_selector">Currency</label>
@@ -439,14 +448,29 @@
     <label for="due_date">Due Date</label>
     <input type="date" id="due_date" oninput="updateInvoice()">
 
-    <label for="invoice_reference">Invoice Reference</label>
-    <input id="invoice_reference" oninput="updateInvoice()">
+    <label for="payment_terms">Payment Terms</label>
+    <select id="payment_terms" oninput="updateInvoice()">
+      <option value="Due on Receipt">Due on Receipt</option>
+      <option value="7 Days">7 Days</option>
+      <option value="14 Days">14 Days</option>
+      <option value="30 Days">30 Days</option>
+      <option value="60 Days">60 Days</option>
+    </select>
+
+    <label for="chargeable_weight">Chargeable Weight</label>
+    <input id="chargeable_weight" oninput="updateInvoice()" placeholder="e.g., 125.50 KG">
+
+    <label for="flight_no">Flight No</label>
+    <input id="flight_no" oninput="updateInvoice()" placeholder="e.g., UL-XXX">
 
     <label for="flight_date">Flight Date</label>
     <input type="date" id="flight_date" oninput="updateInvoice()">
 
     <label for="mawb_number">MAWB Number</label>
     <input id="mawb_number" oninput="updateInvoice()">
+
+    <label for="invoice_reference" style="display:none;">Invoice Reference</label>
+    <input id="invoice_reference" oninput="updateInvoice()" style="display:none;">
 
     <div class="section-title">Charges & Tax</div>
 
@@ -488,14 +512,16 @@
           <tr>
             <th>DATE</th>
             <th>DUE DATE</th>
-            <th>INVOICE NUMBER</th>
+            <th>CHARGEABLE WEIGHT</th>
+            <th>FLIGHT NO</th>
             <th>FLIGHT DATE</th>
             <th>MAWB</th>
           </tr>
           <tr>
             <td id="p_date"></td>
             <td id="p_due"></td>
-            <td id="p_ref"></td>
+            <td id="p_cw"></td>
+            <td id="p_flightno"></td>
             <td id="p_flight"></td>
             <td id="p_mawb"></td>
           </tr>
@@ -530,6 +556,9 @@
             </tr>
           </table>
         </div>
+            <div style="margin-top:-23mm;font-size:11px;"><strong>Payment Terms:</strong> <span id="p_terms"></span></div>
+
+        
 
         <!-- disclaimer -->
         <div class="disclaimer">
@@ -566,6 +595,62 @@
     </div>
   </div>
 
+  <!-- ========= FIREBASE CLOUD SYNC (AUTO BACKUP + AUTO PULL) ========= -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      getDocs,
+      setDoc,
+      doc,
+      deleteDoc
+    } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAyGI0pCfcEbGQUOUiH8NA_Lh2z7D1n17U",
+      authDomain: "airwave-invoice-app.firebaseapp.com",
+      projectId: "airwave-invoice-app",
+      storageBucket: "airwave-invoice-app.firebasestorage.app",
+      messagingSenderId: "986262821736",
+      appId: "1:986262821736:web:1e672b419a62ce78f5d4dd",
+      measurementId: "G-KTD0VFV5LK"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const COL = "invoices";
+
+    async function cloudPullHistory() {
+      const snap = await getDocs(collection(db, COL));
+      const list = [];
+      snap.forEach(d => list.push(d.data()));
+      list.sort((a,b)=> (a.saved_at||"").localeCompare(b.saved_at||""));
+      return list;
+    }
+
+    async function cloudUpsertInvoice(inv) {
+      const id = inv.invoice_number || inv.saved_at || String(Date.now());
+      await setDoc(doc(db, COL, id), inv);
+    }
+
+    async function cloudDeleteInvoice(inv) {
+      const id = inv.invoice_number || inv.saved_at;
+      if (!id) return;
+      await deleteDoc(doc(db, COL, id));
+    }
+
+    async function cloudReplaceHistory(all) {
+      for (const inv of all) {
+        await cloudUpsertInvoice(inv);
+      }
+    }
+
+    window.cloudPullHistory = cloudPullHistory;
+    window.cloudUpsertInvoice = cloudUpsertInvoice;
+    window.cloudDeleteInvoice = cloudDeleteInvoice;
+    window.cloudReplaceHistory = cloudReplaceHistory;
+  </script>
   <script>
     let itemCounter = 0;
     const HISTORY_KEY = "invoice_history";
@@ -640,11 +725,17 @@
       document.getElementById('company_name').textContent = companyName;
 
       // customer block
+      const vat = getVal('customer_vat');
+      const cphone = getVal('customer_phone');
+      const cemail = getVal('customer_email');
       document.getElementById('preview_customer').innerHTML = `
         <strong>${getVal('customer_name')}</strong><br>
         ${getVal('customer_address_line1')}<br>
         ${getVal('customer_address_line2')}<br>
         ${getVal('customer_country')}
+        ${vat ? `<br><strong>VAT/TRN:</strong> ${vat}` : ''}
+        ${cphone ? `<br><strong>Phone:</strong> ${cphone}` : ''}
+        ${cemail ? `<br><strong>Email:</strong> ${cemail}` : ''}
       `;
 
       // title line
@@ -657,9 +748,11 @@
       // meta
       document.getElementById('p_date').textContent   = getVal('invoice_date');
       document.getElementById('p_due').textContent    = getVal('due_date');
-      document.getElementById('p_ref').textContent    = getVal('invoice_reference');
+      document.getElementById('p_cw').textContent     = getVal('chargeable_weight');
+      document.getElementById('p_flightno').textContent = getVal('flight_no');
       document.getElementById('p_flight').textContent = getVal('flight_date');
       document.getElementById('p_mawb').textContent   = getVal('mawb_number');
+      document.getElementById('p_terms').textContent  = getVal('payment_terms');
 
       // line items + totals
       let rowsHtml = `
@@ -700,6 +793,30 @@
       document.getElementById('service_amount').textContent = formatCurrency(serviceAmount);
       document.getElementById('vat_amount').textContent = formatCurrency(vatAmount);
       document.getElementById('total').textContent    = formatCurrency(total);
+      document.getElementById('amount_words').textContent = numberToWordsWithCents(total);
+
+    }
+    function numberToWordsWithCents(num) {
+      if (isNaN(num)) return '';
+      const whole = Math.floor(num);
+      const cents = Math.round((num - whole) * 100);
+      const words = toWords(whole);
+      if (cents > 0) {
+        return `${words} and ${cents}/100`;
+      }
+      return words;
+    }
+
+    function toWords(n) {
+      const a = ['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
+      const b = ['', '', 'Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
+      if (n === 0) return 'Zero';
+      if (n < 20) return a[n];
+      if (n < 100) return b[Math.floor(n/10)] + (n%10? ' ' + a[n%10] : '');
+      if (n < 1000) return a[Math.floor(n/100)] + ' Hundred' + (n%100? ' ' + toWords(n%100) : '');
+      if (n < 1000000) return toWords(Math.floor(n/1000)) + ' Thousand' + (n%1000? ' ' + toWords(n%1000) : '');
+      if (n < 1000000000) return toWords(Math.floor(n/1000000)) + ' Million' + (n%1000000? ' ' + toWords(n%1000000) : '');
+      return toWords(Math.floor(n/1000000000)) + ' Billion' + (n%1000000000? ' ' + toWords(n%1000000000) : '');
     }
 
     function loadHistoryFromStorage() {
@@ -736,6 +853,12 @@
         invoice_number: getVal('invoice_number'),
         invoice_date: getVal('invoice_date'),
         due_date: getVal('due_date'),
+        chargeable_weight: getVal('chargeable_weight'),
+        flight_no: getVal('flight_no'),
+        payment_terms: getVal('payment_terms'),
+        customer_vat: getVal('customer_vat'),
+        customer_phone: getVal('customer_phone'),
+        customer_email: getVal('customer_email'),
         invoice_reference: getVal('invoice_reference'),
         flight_date: getVal('flight_date'),
         mawb_number: getVal('mawb_number'),
@@ -788,6 +911,10 @@
       list.push(inv);
       saveHistoryToStorage(list);
       renderHistory();
+
+      // ✅ CLOUD AUTO BACKUP
+      if (window.cloudUpsertInvoice) window.cloudUpsertInvoice(inv);
+
       alert('Invoice saved.');
     }
 
@@ -810,6 +937,12 @@
       document.getElementById('invoice_number').value = inv.invoice_number || '';
       document.getElementById('invoice_date').value = inv.invoice_date || '';
       document.getElementById('due_date').value = inv.due_date || '';
+      document.getElementById('chargeable_weight').value = inv.chargeable_weight || '';
+      document.getElementById('flight_no').value = inv.flight_no || '';
+      document.getElementById('payment_terms').value = inv.payment_terms || 'Due on Receipt';
+      document.getElementById('customer_vat').value = inv.customer_vat || '';
+      document.getElementById('customer_phone').value = inv.customer_phone || '';
+      document.getElementById('customer_email').value = inv.customer_email || '';
       document.getElementById('invoice_reference').value = inv.invoice_reference || '';
       document.getElementById('flight_date').value = inv.flight_date || '';
       document.getElementById('mawb_number').value = inv.mawb_number || '';
@@ -854,6 +987,12 @@
       document.getElementById('mawb_number').value = '';
       document.getElementById('invoice_date').value = '';
       document.getElementById('due_date').value = '';
+      document.getElementById('chargeable_weight').value = '';
+      document.getElementById('flight_no').value = '';
+      document.getElementById('payment_terms').value = 'Due on Receipt';
+      document.getElementById('customer_vat').value = '';
+      document.getElementById('customer_phone').value = '';
+      document.getElementById('customer_email').value = '';
       document.getElementById('service_percent').value = 0;
       document.getElementById('vat_percent').value = 0;
 
@@ -870,9 +1009,14 @@
     function deleteInvoice(index) {
       const list = loadHistoryFromStorage();
       if (!list || !list.length) return;
+
+      const inv = list[index];
       list.splice(index, 1);
       saveHistoryToStorage(list);
       renderHistory();
+
+      // ✅ CLOUD DELETE
+      if (window.cloudDeleteInvoice) window.cloudDeleteInvoice(inv);
     }
 
     function exportHistory() {
@@ -898,6 +1042,10 @@
           if (Array.isArray(data)) {
             saveHistoryToStorage(data);
             renderHistory();
+
+            // ✅ CLOUD REPLACE / MERGE
+            if (window.cloudReplaceHistory) window.cloudReplaceHistory(data);
+
             alert('Invoice history imported.');
           } else {
             alert('Invalid history file format.');
@@ -930,12 +1078,25 @@
     }
 
     // on load
-    addEventListener("DOMContentLoaded", () => {
+    addEventListener("DOMContentLoaded", async () => {
       document.getElementById("invoice_number").value = getNextInvoiceNumber();
       addItem();
       updateInvoice();
       renderHistory();
       fetchExchangeRates();
+
+      // ✅ AUTO PULL FROM CLOUD (any PC)
+      if (window.cloudPullHistory) {
+        try {
+          const cloudList = await window.cloudPullHistory();
+          if (cloudList && cloudList.length) {
+            saveHistoryToStorage(cloudList);
+            renderHistory();
+          }
+        } catch (e) {
+          console.log("Cloud pull failed (offline maybe). Using local history.");
+        }
+      }
     });
   </script>
 
