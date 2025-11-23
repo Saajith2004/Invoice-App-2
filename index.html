@@ -829,6 +829,8 @@
       </div>
     </div>
 
+    <div id="amount_words" style="margin-top:4mm;font-size:11px;font-weight:700;"></div>
+
     <!-- ACTIONS + HISTORY -->
     <div class="actions">
       <button type="button" onclick="handlePrint()">Print</button>
@@ -1223,8 +1225,8 @@
       document.getElementById('service_amount').textContent = formatCurrency(serviceAmount);
       document.getElementById('vat_amount').textContent = formatCurrency(vatAmount);
       document.getElementById('total').textContent    = formatCurrency(total);
-      document.getElementById('amount_words').textContent = numberToWordsWithCents(total);
-
+      const wordsEl = document.getElementById('amount_words');
+      if (wordsEl) wordsEl.textContent = numberToWordsWithCents(total);
     }
     function numberToWordsWithCents(num) {
       if (isNaN(num)) return '';
