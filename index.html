@@ -6,8 +6,9 @@
   <link rel="apple-touch-icon" href="icon-192.png">
   <meta charset="UTF-8">
   <title>Pro-Forma Invoice Builder</title>
-  <!-- PDF export library (loads early for Save/Share PDF) -->
-  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <!-- PDF export libraries (reliable on all platforms) -->
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <style>
     /* ========== PAGE & GLOBAL ========== */
@@ -1374,34 +1375,49 @@
       window.print();
     }
 
-    async function saveAsPDF() {
+    // Helper: render invoice to canvas and build PDF Blob
+    async function buildPdfBlobFromInvoice() {
       const invoiceEl = document.getElementById('invoice_section');
-      if (!invoiceEl) {
-        alert('Invoice preview not found.');
-        return;
-      }
-      if (typeof html2pdf === 'undefined') {
-        alert('PDF library not loaded yet. If you are offline, open once with internet then try again.');
-        return;
+      if (!invoiceEl) throw new Error('Invoice preview not found');
+      if (typeof html2canvas === 'undefined' || !window.jspdf) {
+        throw new Error('PDF libraries not loaded yet. Open once with internet then try again.');
       }
 
       updateInvoice();
 
+      const canvas = await html2canvas(invoiceEl, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        scrollX: 0,
+        scrollY: -window.scrollY
+      });
+
+      const imgData = canvas.toDataURL('image/jpeg', 0.98);
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF('p', 'mm', 'a4');
+
+      const pageWidth = 210;
+      const pageHeight = 297;
+      let imgWidth = pageWidth;
+      let imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      // Fit to one A4 page if slightly taller
+      if (imgHeight > pageHeight) {
+        const scale = pageHeight / imgHeight;
+        imgWidth *= scale;
+        imgHeight *= scale;
+      }
+
+      pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
+      return pdf.output('blob');
+    }
+
+    async function saveAsPDF() {
       const invNum = (getVal('invoice_number') || 'invoice').replace(/[^a-z0-9-_]+/gi, '_');
       const fileName = `${invNum}.pdf`;
-
-      const opt = {
-        margin:       [0, 0, 0, 0],
-        filename:     fileName,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
-      };
-
       try {
-        const worker = html2pdf().set(opt).from(invoiceEl);
-        const blob = await worker.outputPdf('blob');
+        const blob = await buildPdfBlobFromInvoice();
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -1410,57 +1426,28 @@
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        // NOTE: no auto-refresh here (it can cancel downloads on some browsers)
       } catch (e) {
         console.error('PDF export failed', e);
-        alert('PDF export failed. Try Print button as fallback.');
+        alert(e.message || 'PDF export failed. Try Print button as fallback.');
       }
     }
 
     async function shareAsPDF() {
-      const invoiceEl = document.getElementById('invoice_section');
-      if (!invoiceEl) {
-        alert('Invoice preview not found.');
-        return;
-      }
-      if (typeof html2pdf === 'undefined') {
-        alert('PDF library not loaded yet. Open once with internet then try again.');
-        return;
-      }
-
-      updateInvoice();
-
       const invNum = (getVal('invoice_number') || 'invoice').replace(/[^a-z0-9-_]+/gi, '_');
       const fileName = `${invNum}.pdf`;
-
-      const opt = {
-        margin:       [0, 0, 0, 0],
-        filename:     fileName,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
-      };
-
       try {
-        const worker = html2pdf().set(opt).from(invoiceEl);
-        const blob = await worker.outputPdf('blob');
+        const blob = await buildPdfBlobFromInvoice();
 
-        // Use native share if available
+        // Native share if available
         if (navigator.share && navigator.canShare) {
           const file = new File([blob], fileName, { type: 'application/pdf' });
           if (navigator.canShare({ files: [file] })) {
-            await navigator.share({
-              title: fileName,
-              text: 'Invoice PDF',
-              files: [file]
-            });
-            refreshPage();
+            await navigator.share({ title: fileName, text: 'Invoice PDF', files: [file] });
             return;
           }
         }
 
-        // Fallback: download if share not supported
+        // Fallback: download
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -1472,7 +1459,7 @@
         alert('Sharing not supported on this browser. PDF downloaded instead.');
       } catch (e) {
         console.error('Share PDF failed', e);
-        alert('Share failed. Try Save as PDF instead.');
+        alert(e.message || 'Share failed. Try Save as PDF instead.');
       }
     }
 
