@@ -1401,9 +1401,13 @@
       };
 
       try {
-        await html2pdf().set(opt).from(invoiceEl).save();
-        // After save, refresh like your other actions
-        refreshPage();
+        const worker = html2pdf().set(opt).from(invoiceEl);
+        worker.save();
+        // Don't reload immediately (can cancel download). Give browser time.
+        setTimeout(() => {
+          // optional refresh to start a clean invoice
+          refreshPage();
+        }, 1200);
       } catch (e) {
         console.error('PDF export failed', e);
         alert('PDF export failed. Try Print button as fallback.');
