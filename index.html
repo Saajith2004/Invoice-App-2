@@ -6,6 +6,8 @@
   <link rel="apple-touch-icon" href="icon-192.png">
   <meta charset="UTF-8">
   <title>Pro-Forma Invoice Builder</title>
+  <!-- PDF export library (loads early for Save/Share PDF) -->
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
   <style>
     /* ========== PAGE & GLOBAL ========== */
@@ -430,6 +432,8 @@
     .actions button:nth-child(1) { background: linear-gradient(135deg, var(--brand), #0ea5e9); }
     .actions button:nth-child(2) { background: linear-gradient(135deg, #22c55e, #16a34a); }
     .actions button:nth-child(3) { background: linear-gradient(135deg, var(--brand-2), #ec4899); }
+    .actions button:nth-child(4) { background: linear-gradient(135deg, #f59e0b, #ef4444); }
+    .actions button:nth-child(5) { background: linear-gradient(135deg, #06b6d4, #3b82f6); }
 
     .actions button:hover { transform: translateY(-1px); filter: brightness(0.98); }
     @media (max-width: 1100px) {
@@ -828,6 +832,7 @@
     <div class="actions">
       <button type="button" onclick="handlePrint()">Print</button>
       <button type="button" onclick="saveAsPDF()">Save as PDF</button>
+      <button type="button" onclick="shareAsPDF()">Share PDF</button>
       <button type="button" onclick="saveInvoice()">Save Invoice</button>
       <button type="button" onclick="refreshPage()">New Invoice</button>
     </div>
@@ -1371,8 +1376,12 @@
 
     async function saveAsPDF() {
       const invoiceEl = document.getElementById('invoice_section');
-      if (!invoiceEl || typeof html2pdf === 'undefined') {
-        alert('PDF library not loaded. Check internet once to cache it.');
+      if (!invoiceEl) {
+        alert('Invoice preview not found.');
+        return;
+      }
+      if (typeof html2pdf === 'undefined') {
+        alert('PDF library not loaded yet. If you are offline, open once with internet then try again.');
         return;
       }
 
@@ -1398,6 +1407,65 @@
       } catch (e) {
         console.error('PDF export failed', e);
         alert('PDF export failed. Try Print button as fallback.');
+      }
+    }
+
+    async function shareAsPDF() {
+      const invoiceEl = document.getElementById('invoice_section');
+      if (!invoiceEl) {
+        alert('Invoice preview not found.');
+        return;
+      }
+      if (typeof html2pdf === 'undefined') {
+        alert('PDF library not loaded yet. Open once with internet then try again.');
+        return;
+      }
+
+      updateInvoice();
+
+      const invNum = (getVal('invoice_number') || 'invoice').replace(/[^a-z0-9-_]+/gi, '_');
+      const fileName = `${invNum}.pdf`;
+
+      const opt = {
+        margin:       [0, 0, 0, 0],
+        filename:     fileName,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+      };
+
+      try {
+        const worker = html2pdf().set(opt).from(invoiceEl);
+        const blob = await worker.outputPdf('blob');
+
+        // Use native share if available
+        if (navigator.share && navigator.canShare) {
+          const file = new File([blob], fileName, { type: 'application/pdf' });
+          if (navigator.canShare({ files: [file] })) {
+            await navigator.share({
+              title: fileName,
+              text: 'Invoice PDF',
+              files: [file]
+            });
+            refreshPage();
+            return;
+          }
+        }
+
+        // Fallback: download if share not supported
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        alert('Sharing not supported on this browser. PDF downloaded instead.');
+      } catch (e) {
+        console.error('Share PDF failed', e);
+        alert('Share failed. Try Save as PDF instead.');
       }
     }
 
@@ -1593,7 +1661,6 @@
   </script>
 
   <!-- PDF export (client-side) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("service-worker.js");
